@@ -1,6 +1,5 @@
 # Database
 db = D:\Cross_Linking_Data\Aebersold\db\26Syeast.fasta # The whole protein database
-decoy_db = reverse # shuffle, reverse or decoy database file path
 missed_cleavage = 2 # maximum number of missed cleavage
 min_precursor_mass = 1000
 max_precursor_mass = 5000
@@ -11,7 +10,6 @@ max_chain_length = 50
 ms1_charge = 2,3,4,5
 common_ion_charge = 1,2
 xlink_ion_charge = 2,3
-min_peak_mz = 0
 min_peak_num = 20
 
 # Tolerance
@@ -21,7 +19,7 @@ ms2_tolerance = 0.2 # unit: m/z
 
 # Cross-linking parameter.
 # Cross-linking site can not be modified.
-cl_aa = K
+cl_aa = K # DO NOT change this
 nterm_linkable = 1
 cl_mass = 138.0680796
 
