@@ -5,47 +5,47 @@ import java.util.regex.*;
 
 public class MassTool {
 
-	private static final double DOUBLE_ZERO = 1e-6;
-	private static final double PROTON_MASS = 1.00727646688;
+	private static final float DOUBLE_ZERO = 1e-6f;
+	private static final float PROTON_MASS = 1.00727646688f;
 
-	private final Map<String, Double> mass_table = new HashMap<>();
+	private final Map<String, Float> mass_table = new HashMap<>();
 	private final int missed_cleavage;
 	private final int nterm_linkable;
 
-	public MassTool(final int missed_cleavage, Map<String, Double> fix_mod_map, int nterm_linkable) {
+	public MassTool(final int missed_cleavage, Map<String, Float> fix_mod_map, int nterm_linkable) {
 		this.missed_cleavage = missed_cleavage;
 		this.nterm_linkable = nterm_linkable;
-		mass_table.put("G", 57.021464 + fix_mod_map.get("G"));
-		mass_table.put("A", 71.037114 + fix_mod_map.get("A"));
-		mass_table.put("S", 87.032028 + fix_mod_map.get("S"));
-		mass_table.put("P", 97.052764 + fix_mod_map.get("P"));
-		mass_table.put("V", 99.068414 + fix_mod_map.get("V"));
-		mass_table.put("T", 101.047678 + fix_mod_map.get("I"));
-		mass_table.put("C", 103.009184 + fix_mod_map.get("C"));
-		mass_table.put("I", 113.084064 + fix_mod_map.get("I"));
-		mass_table.put("L", 113.084064 + fix_mod_map.get("L"));
-		mass_table.put("N", 114.042927 + fix_mod_map.get("N"));
-		mass_table.put("D", 115.026943 + fix_mod_map.get("D"));
-		mass_table.put("Q", 128.058578 + fix_mod_map.get("Q"));
-		mass_table.put("K", 128.094963 + fix_mod_map.get("K"));
-		mass_table.put("E", 129.042593 + fix_mod_map.get("E"));
-		mass_table.put("M", 131.040485 + fix_mod_map.get("M"));
-		mass_table.put("H", 137.058912 + fix_mod_map.get("H"));
-		mass_table.put("F", 147.068414 + fix_mod_map.get("F"));
-		mass_table.put("R", 156.101111 + fix_mod_map.get("R"));
-		mass_table.put("Y", 163.063329 + fix_mod_map.get("Y"));
-		mass_table.put("W", 186.079313 + fix_mod_map.get("W"));
-		mass_table.put("X", 118.805717);
+		mass_table.put("G", 57.021464f + fix_mod_map.get("G"));
+		mass_table.put("A", 71.037114f + fix_mod_map.get("A"));
+		mass_table.put("S", 87.032028f + fix_mod_map.get("S"));
+		mass_table.put("P", 97.052764f + fix_mod_map.get("P"));
+		mass_table.put("V", 99.068414f + fix_mod_map.get("V"));
+		mass_table.put("T", 101.047678f + fix_mod_map.get("I"));
+		mass_table.put("C", 103.009184f + fix_mod_map.get("C"));
+		mass_table.put("I", 113.084064f + fix_mod_map.get("I"));
+		mass_table.put("L", 113.084064f + fix_mod_map.get("L"));
+		mass_table.put("N", 114.042927f + fix_mod_map.get("N"));
+		mass_table.put("D", 115.026943f + fix_mod_map.get("D"));
+		mass_table.put("Q", 128.058578f + fix_mod_map.get("Q"));
+		mass_table.put("K", 128.094963f + fix_mod_map.get("K"));
+		mass_table.put("E", 129.042593f + fix_mod_map.get("E"));
+		mass_table.put("M", 131.040485f + fix_mod_map.get("M"));
+		mass_table.put("H", 137.058912f + fix_mod_map.get("H"));
+		mass_table.put("F", 147.068414f + fix_mod_map.get("F"));
+		mass_table.put("R", 156.101111f + fix_mod_map.get("R"));
+		mass_table.put("Y", 163.063329f + fix_mod_map.get("Y"));
+		mass_table.put("W", 186.079313f + fix_mod_map.get("W"));
+		mass_table.put("X", 118.805717f);
 		mass_table.put("Z", fix_mod_map.get("Z"));
-		mass_table.put("Hatom", 1.007825032);
-		mass_table.put("Natom", 14.00307401);
-		mass_table.put("Oatom", 15.99491462);
-		mass_table.put("Patom", 30.97376151);
-		mass_table.put("Satom", 31.97207069);
+		mass_table.put("Hatom", 1.007825032f);
+		mass_table.put("Natom", 14.00307401f);
+		mass_table.put("Oatom", 15.99491462f);
+		mass_table.put("Patom", 30.97376151f);
+		mass_table.put("Satom", 31.97207069f);
 	}
 
-	public double calResidueMass(String seq) { // Caution: nterm mod is not included!!!!!
-		double total_mass = 0;
+	public float calResidueMass(String seq) { // Caution: nterm mod is not included!!!!!
+		float total_mass = 0;
 		int length = seq.length();
 		for (int idx = 0; idx < length; ++idx) {
 			total_mass += mass_table.get(seq.substring(idx, idx + 1));
@@ -77,16 +77,16 @@ public class MassTool {
 		return chain_seq_set;
 	}
 
-	public double[][] buildChainIonArray(String pep_chain, int min_charge, int max_charge) {
+	public float[][] buildChainIonArray(String pep_chain, int min_charge, int max_charge) {
 		// [NOTE] The b/y-ions charge 0
 		int charge_num = max_charge - min_charge + 1;
-		double[][] chain_ion_array = new double[2 * charge_num][pep_chain.length()];
-		double b_ion_mass = mass_table.get("Z");
-		double y_ion_mass = calResidueMass(pep_chain) + mass_table.get("Z") + 2 * mass_table.get("Hatom") + mass_table.get("Oatom");
+		float[][] chain_ion_array = new float[2 * charge_num][pep_chain.length()];
+		float b_ion_mass = mass_table.get("Z");
+		float y_ion_mass = calResidueMass(pep_chain) + mass_table.get("Z") + 2 * mass_table.get("Hatom") + mass_table.get("Oatom");
 
 		for (int charge = min_charge; charge <= max_charge; ++charge) {
-			double b_ion_mass_charge = (b_ion_mass + charge * PROTON_MASS) / charge;
-			double y_ion_mass_charge = (y_ion_mass + charge * PROTON_MASS) / charge;
+			float b_ion_mass_charge = (b_ion_mass + charge * PROTON_MASS) / charge;
+			float y_ion_mass_charge = (y_ion_mass + charge * PROTON_MASS) / charge;
 			int charge_idx = charge - min_charge;
 			int charge_idx_2 = 2 * charge_idx;
 			int charge_idx_2_1 = charge_idx_2 + 1;
@@ -113,15 +113,15 @@ public class MassTool {
 		return chain_ion_array;
 	}
 
-	public Map<String, Double> returnMassTable() {
+	public Map<String, Float> returnMassTable() {
 		return mass_table;
 	}
 
-	public double[] buildVector(double[][] ion_matrix, int precursor_charge, int min_charge) {
+	public float[] buildVector(float[][] ion_matrix, int precursor_charge, int min_charge) {
 		int col_num = ion_matrix[0].length;
 
 		int max_row = Math.min(ion_matrix.length / 2, precursor_charge - min_charge) * 2;
-		double[] temp = new double[max_row * col_num];
+		float[] temp = new float[max_row * col_num];
 		for (int i = 0; i < max_row; ++i) {
 			System.arraycopy(ion_matrix[i], 0, temp, i * col_num, col_num);
 		}
@@ -146,10 +146,10 @@ public class MassTool {
 		}
 	}
 
-	public double[][] buildPseudoCLIonArray(double[][] seq_ion, int link_site, int[] common_ion_charge, int[] xlink_ion_charge, float additional_mass) { // TODO: check
+	public float[][] buildPseudoCLIonArray(float[][] seq_ion, int link_site, int[] common_ion_charge, int[] xlink_ion_charge, float additional_mass) {
 		int charge_num = xlink_ion_charge[xlink_ion_charge.length - 1] - common_ion_charge[0] + 1;
 		int col_num = seq_ion[0].length;
-		double[][] cl_ion_array = new double[2 * charge_num][col_num];
+		float[][] cl_ion_array = new float[2 * charge_num][col_num];
 
 		// Common ion only.
 		for (int charge = common_ion_charge[0]; charge < xlink_ion_charge[0]; ++charge) {
@@ -167,7 +167,7 @@ public class MassTool {
 			int charge_idx_2_1 = charge_idx_2 + 1;
 			System.arraycopy(seq_ion[charge_idx_2], 0, cl_ion_array[charge_idx_2], 0, link_site);
 			System.arraycopy(seq_ion[charge_idx_2_1], link_site + 1, cl_ion_array[charge_idx_2_1], link_site + 1, col_num - link_site - 1);
-			double addition_mz = additional_mass / charge;
+			float addition_mz = additional_mass / charge;
 			for (int idx = 0; idx < col_num; ++idx) {
 				if (idx < link_site) {
 					cl_ion_array[charge_idx_2_1][idx] = seq_ion[charge_idx_2_1][idx] + addition_mz;
@@ -187,7 +187,7 @@ public class MassTool {
 			int charge_idx_2_1 = charge_idx_2 + 1;
 
 			// Alpha chain
-			double addition_mz = additional_mass / charge;
+			float addition_mz = additional_mass / charge;
 			for (int idx = 0; idx < col_num; ++idx) {
 				if (idx < link_site) {
 					cl_ion_array[charge_idx_2_1][idx] = seq_ion[charge_idx_2_1][idx] + addition_mz;
@@ -228,8 +228,8 @@ public class MassTool {
 		Map<Integer, List<int[]>> digest_range_map = new HashMap<>();
 		for (int time = 0; time <= missed_cleavage; ++time) {
 			List<int[]> temp = new LinkedList<>();
-			int left_point = 0;
-			int right_point = 0;
+			int left_point;
+			int right_point;
 			for (int i = 0; i + 1 + time < cut_point_list.size(); ++i) {
 				left_point = cut_point_list.get(i);
 				right_point = cut_point_list.get(i + 1 + time);

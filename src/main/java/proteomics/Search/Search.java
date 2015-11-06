@@ -1,8 +1,9 @@
 package proteomics.Search;
 
-import org.systemsbiology.jrap.stax.MSXMLParser;
-import org.systemsbiology.jrap.stax.Scan;
-import org.systemsbiology.jrap.stax.ScanHeader;
+import uk.ac.ebi.pride.tools.jmzreader.*;
+import uk.ac.ebi.pride.tools.jmzreader.model.*;
+import uk.ac.ebi.pride.tools.mzxml_parser.*;
+import proteomics.Index.BuildIndex;
 import proteomics.Index.ChainEntry;
 import proteomics.LogEntry;
 import proteomics.Math.CalScore;
@@ -15,7 +16,7 @@ import java.util.*;
 
 public class Search {
 
-    private static final double PROTON_MASS = 1.00727646688;
+    private static final float PROTON_MASS = 1.00727646688f;
 
     private LogEntry log_entry = null;
     private int[] ms1_charge = null;
@@ -23,15 +24,14 @@ public class Search {
     private int[] xlink_ion_charge = null;
     private float ms1_tolerance = 0;
     private int ms1_tolerance_unit = 0;
-    private double ms2_tolerance = 0;
-    private double linker_mass = 0;
+    private float ms2_tolerance = 0;
+    private float linker_mass = 0;
     private float min_precursor_mass = 0;
     private float max_precursor_mass = 0;
     private int min_peak_num = 0;
-    private Map<String, String> index_chain_map = null;
     private Map<String, ChainEntry> chain_entry_map = null;
-    private Map<String, Double> fix_mod_map = null;
-    private MassTool mass_tool = null;
+    private Map<String, Float> fix_mod_map = null;
+    private MassTool mass_tool_obj = null;
     private String output_str = null;
     private Map<Integer, SpectrumEntry> num_spectrum_map = new HashMap<>();
     private float single_dot_product_t = 1e-6f;
@@ -40,23 +40,21 @@ public class Search {
     private int linker_mass1000 = 0;
 
     /////////////////////////////////////////public methods////////////////////////////////////////////////////////////
-    public Search(PrepareSearch ps, LogEntry log_entry) throws Exception {
+    public Search(PrepareSearch ps, LogEntry log_entry, Map<String, String> parameter_map) throws Exception {
         this.log_entry = log_entry;
 
-        Map<String, String> parameter_map = ps.returnParameterMap();
-        index_chain_map = ps.returnIndexChainMap();
         chain_entry_map = ps.returnChainEntryMap();
-        fix_mod_map = ps.returnFixModMap();
-        mass_tool = ps.returnMassTool();
+        BuildIndex build_index_obj = ps.returnBuildIndex();
+        fix_mod_map = build_index_obj.returnFixModMap();
+        mass_tool_obj = build_index_obj.returnMassTool();
         ms1_charge = string2Array(parameter_map.get("ms1_charge"));
         common_ion_charge = string2Array(parameter_map.get("common_ion_charge"));
         xlink_ion_charge = string2Array(parameter_map.get("xlink_ion_charge"));
         ms1_tolerance_unit = Integer.valueOf(parameter_map.get("ms1_tolerance_unit"));
         ms1_tolerance = Float.valueOf(parameter_map.get("ms1_tolerance"));
-        ms2_tolerance = Double.valueOf(parameter_map.get("ms2_tolerance"));
-        String cl_aa = parameter_map.get("cl_aa");
-        linker_mass = Double.valueOf(parameter_map.get("cl_mass")) - 2 * Double.valueOf(parameter_map.get(cl_aa)); // TODO: different link sites have different mod. The compensation should be different.
-        linker_mass1000 = round1000((float) linker_mass);
+        ms2_tolerance = Float.valueOf(parameter_map.get("ms2_tolerance"));
+        linker_mass = Float.valueOf(parameter_map.get("cl_mass")) - 2 * Float.valueOf(parameter_map.get("K"));
+        linker_mass1000 = round1000(linker_mass);
         min_precursor_mass = Float.valueOf(parameter_map.get("min_precursor_mass"));
         max_precursor_mass = Float.valueOf(parameter_map.get("max_precursor_mass"));
         min_peak_num = Integer.valueOf(parameter_map.get("min_peak_num"));
@@ -64,56 +62,52 @@ public class Search {
 
     public List<FinalResultEntry> doSearch(String msxml_path) throws Exception {
         // Read mzxml
-        MSXMLParser msxml_parser = null;
+        JMzReader spectra_parser = null;
         try {
-            File f = new File(msxml_path);
-            if ((!f.exists() || (f.isDirectory()))) {
-                FileNotFoundException file_error = new FileNotFoundException("mzXML file not found.");
-                throw file_error;
+            File spectra_file = new File(msxml_path);
+            if ((!spectra_file.exists() || (spectra_file.isDirectory()))) {
+                throw new FileNotFoundException("The spectra file not found.");
             }
-            msxml_parser = new MSXMLParser(msxml_path);
-        } catch (FileNotFoundException ex) {
+            spectra_parser = new MzXMLFile(spectra_file);
+        } catch (FileNotFoundException | MzXMLParsingException ex) {
             System.err.println(ex.getMessage());
             System.exit(1);
         }
 
         // Get current time
-        double time_spectra_start = System.nanoTime();
+        float time_spectra_start = System.nanoTime();
         System.out.println("Reading and processing spectra...");
-        for (int j = 1; j <= msxml_parser.getMaxScanNumber(); ++j) {
-            Scan scan = msxml_parser.rap(j);
-            ScanHeader header = scan.getHeader();
+        Iterator<Spectrum> spectrum_iterator = spectra_parser.getSpectrumIterator();
+        while (spectrum_iterator.hasNext()) {
+            Spectrum spectrum = spectrum_iterator.next();
 
-            if (header.getMsLevel() == 1) {
+            if (spectrum.getMsLevel() != 2) {
                 continue;
             }
 
-            if (header.getPrecursorCharge() == -1) {
-                continue;
-            }
-
-            int precursor_charge = header.getPrecursorCharge();
+            int precursor_charge = spectrum.getPrecursorCharge();
             if ((precursor_charge < ms1_charge[0]) || (precursor_charge > ms1_charge[ms1_charge.length - 1])) {
                 continue;
             }
 
-            float precursor_mz = header.getPrecursorMz();
-            float precursor_mass = precursor_mz * precursor_charge - precursor_charge * (float) PROTON_MASS;
+            float precursor_mz = spectrum.getPrecursorMZ().floatValue();
+            float precursor_mass = precursor_mz * precursor_charge - precursor_charge * PROTON_MASS;
             if ((precursor_mass > max_precursor_mass + 1) || (precursor_mass < min_precursor_mass - 1)) {
                 continue;
             }
 
-            double[][] raw_mz_intensity_array = scan.getMassIntensityList();
-            if (raw_mz_intensity_array[0].length < min_peak_num) {
+            Map<Double, Double> raw_mz_intensity_map = spectrum.getPeakList();
+            if (raw_mz_intensity_map.size() < min_peak_num) {
                 continue;
             }
 
-            double[][] mz_intensity_array = PreSpectrum.preProcessSpec(raw_mz_intensity_array, precursor_mass, precursor_charge, ms2_tolerance, precursor_mass);
+            float[][] mz_intensity_array = PreSpectrum.preProcessSpec(raw_mz_intensity_map, precursor_mass, precursor_charge, ms2_tolerance, precursor_mass);
             if (mz_intensity_array[0].length <= min_peak_num) {
                 continue;
             }
 
-            SpectrumEntry spectrum_entry = new SpectrumEntry(j, header.getPrecursorIntensity(), precursor_mz, precursor_mass, precursor_charge, mz_intensity_array);
+            int scan_num = Integer.valueOf(spectrum.getId());
+            SpectrumEntry spectrum_entry = new SpectrumEntry(scan_num, spectrum.getPrecursorIntensity().floatValue(), precursor_mz, precursor_mass, precursor_charge, mz_intensity_array);
 
             if (mass1000_spectrum_map.containsKey(round1000(precursor_mass))) {
                 List<SpectrumEntry> spectrum_list = mass1000_spectrum_map.get(round1000(precursor_mass));
@@ -125,7 +119,7 @@ public class Search {
                 mass1000_spectrum_map.put(round1000(precursor_mass), spectrum_list);
             }
 
-            num_spectrum_map.put(j, spectrum_entry);
+            num_spectrum_map.put(scan_num, spectrum_entry);
         }
 
         double time_spectra_end = System.nanoTime();
@@ -139,9 +133,7 @@ public class Search {
             ChainEntry chain_entry = chain_entry_map.get(chain);
             int mass1000 = round1000(chain_entry.chain_mass);
             if (mass1000_chain_map.containsKey(mass1000)) {
-                Set<String> temp = mass1000_chain_map.get(mass1000);
-                temp.add(chain);
-                mass1000_chain_map.put(mass1000, temp);
+                mass1000_chain_map.get(mass1000).add(chain);
             } else {
                 Set<String> temp = new HashSet<>();
                 temp.add(chain);
@@ -151,7 +143,7 @@ public class Search {
 
         // Get current time
         Map<Integer, ResultEntry> result_map = new HashMap<>();
-        double time_search_start = System.nanoTime();
+        float time_search_start = System.nanoTime();
         System.out.println("Searching cross-linked peptides...");
         output_str += "Searching cross-linked peptides..." + "\r\n";
 
@@ -195,19 +187,18 @@ public class Search {
 
             TreeMap<Integer, List<SemiPSM>> exp_mass1000_2_semiPSM_map = new TreeMap<>();
             chain_set_1 = mass1000_chain_map.get(mass1000_1);
-            for (String chain_1 : chain_set_1) {
-                ChainEntry chain_entry_1 = this.chain_entry_map.get(chain_1);
+            for (String chain_seq_1 : chain_set_1) {
+                ChainEntry chain_entry_1 = this.chain_entry_map.get(chain_seq_1);
                 List<Integer> link_site_list_1 = chain_entry_1.linksite_list;
-                double[][] seq_ion_1 = chain_entry_1.chain_ion_array;
-                linearSearch(sub_spectra_map, mass1000_1, chain_entry_1.chain_index, seq_ion_1, link_site_list_1, exp_mass1000_2_semiPSM_map);
+                float[][] seq_ion_1 = chain_entry_1.chain_ion_array;
+                linearSearch(sub_spectra_map, chain_seq_1, mass1000_1, seq_ion_1, link_site_list_1, exp_mass1000_2_semiPSM_map);
             }
 
             if (exp_mass1000_2_semiPSM_map.size() == 0) {
                 continue;
             }
 
-            Set<Integer> exp_mass1000_2_set = exp_mass1000_2_semiPSM_map.keySet();
-            for (int exp_mass1000_2 : exp_mass1000_2_set) {
+            for (int exp_mass1000_2 : exp_mass1000_2_semiPSM_map.keySet()) {
                 int exp_mass1000 = mass1000_1 + exp_mass1000_2 + linker_mass1000;
                 int mass1000_2_left = 0;
                 int mass1000_2_right = 0;
@@ -223,14 +214,13 @@ public class Search {
                 Set<Integer> mass1000_2_set = mass1000_2_map.keySet();
                 for (int mass1000_2 : mass1000_2_set) {
                     Set<String> chain_set_2 = mass1000_chain_map.get(mass1000_2);
-                    for (String chain_2 : chain_set_2) {
-                        ChainEntry chain_entry_2 = chain_entry_map.get(chain_2);
-                        double[][] seq_ion_2 = chain_entry_2.chain_ion_array;
-                        List<Integer> link_site_list_2 = chain_entry_2.linksite_list;
-                        for (int link_site_2 : link_site_list_2) {
-                            double[][] pseudo_ion_array = mass_tool.buildPseudoCLIonArray(seq_ion_2, link_site_2, common_ion_charge, xlink_ion_charge, back1000(mass1000_1) + (float) linker_mass);
-                            Map<Integer, double[]> charge_theo_mz_map = new HashMap<>();
-                            double[] theo_mz_2;
+                    for (String chain_seq_2 : chain_set_2) {
+                        ChainEntry chain_entry_2 = chain_entry_map.get(chain_seq_2);
+                        float[][] seq_ion_2 = chain_entry_2.chain_ion_array;
+                        for (int link_site_2 : chain_entry_2.linksite_list) {
+                            float[][] pseudo_ion_array = mass_tool_obj.buildPseudoCLIonArray(seq_ion_2, link_site_2, common_ion_charge, xlink_ion_charge, back1000(mass1000_1) + linker_mass);
+                            Map<Integer, float[]> charge_theo_mz_map = new HashMap<>();
+                            float[] theo_mz_2;
                             for (SemiPSM semi_psm : semi_psm_list) {
                                 int scan_num = semi_psm.scan_num;
                                 SpectrumEntry spectrum_entry = num_spectrum_map.get(scan_num);
@@ -238,11 +228,11 @@ public class Search {
                                 if (charge_theo_mz_map.containsKey(precursor_charge)) {
                                     theo_mz_2 = charge_theo_mz_map.get(precursor_charge);
                                 } else {
-                                    theo_mz_2 = mass_tool.buildVector(pseudo_ion_array, precursor_charge, common_ion_charge[0]);
+                                    theo_mz_2 = mass_tool_obj.buildVector(pseudo_ion_array, precursor_charge, common_ion_charge[0]);
                                     charge_theo_mz_map.put(precursor_charge, theo_mz_2);
                                 }
                                 CalScore cal_score_2 = new CalScore(spectrum_entry.mz_intensity_array, theo_mz_2, ms2_tolerance);
-                                double dot_product_2 = cal_score_2.cal_dot_product();
+                                float dot_product_2 = cal_score_2.cal_dot_product();
                                 if (dot_product_2 <= single_dot_product_t) {
                                     continue;
                                 }
@@ -254,20 +244,17 @@ public class Search {
                                 if (result_map.containsKey(scan_num)) {
                                     ResultEntry last_result = result_map.get(scan_num);
                                     if (xcorr > last_result.xcorr) {
-                                        float total_mass = back1000(mass1000_1 + mass1000_2) + (float) linker_mass;
+                                        float total_mass = back1000(mass1000_1 + mass1000_2) + linker_mass;
                                         float abs_ppm = (float) (Math.abs(spectrum_entry.precursor_mass - total_mass) * 1e6 / total_mass);
-                                        String cl_index = semi_psm.chain_index + "-" + chain_entry_2.chain_index + "-" + semi_psm.link_site + "-" + link_site_2;
-                                        ResultEntry result_entry = new ResultEntry(abs_ppm, xcorr, last_result.xcorr, cl_index);
+                                        ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, xcorr, last_result.xcorr);
                                         result_map.put(scan_num, result_entry);
                                     } else if (xcorr > last_result.scond_xcorr) {
-                                        ResultEntry result_entry = new ResultEntry(last_result.abs_ppm, last_result.xcorr, xcorr, last_result.cl_index);
-                                        result_map.put(scan_num, result_entry);
+                                        result_map.get(scan_num).scond_xcorr = xcorr; // TODO; check
                                     }
                                 } else {
-                                    float total_mass = back1000(mass1000_1 + mass1000_2) + (float) linker_mass;
+                                    float total_mass = back1000(mass1000_1 + mass1000_2) + linker_mass;
                                     float abs_ppm = (float) (Math.abs(spectrum_entry.precursor_mass - total_mass) * 1e6 / total_mass);
-                                    String cl_index = semi_psm.chain_index + "-" + chain_entry_2.chain_index + "-" + semi_psm.link_site + "-" + link_site_2;
-                                    ResultEntry result_entry = new ResultEntry(abs_ppm, xcorr, 0, cl_index);
+                                    ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, xcorr, 0);
                                     result_map.put(scan_num, result_entry);
                                 }
                             }
@@ -278,30 +265,23 @@ public class Search {
         }
 
         // Build a fix modification only map for further use.
-        Map<String, Double> fix_mod_only = new HashMap<>();
+        Map<String, Float> fix_mod_only = new HashMap<>();
         Set<String> aa_set = fix_mod_map.keySet();
         for (String aa : aa_set) {
-            double mod_mass = fix_mod_map.get(aa);
+            float mod_mass = fix_mod_map.get(aa);
             if (mod_mass != 0.0) {
                 fix_mod_only.put(aa, mod_mass);
             }
         }
 
         List<FinalResultEntry> search_result = new LinkedList<>();
-        Set<Integer> spectrum_num_set = result_map.keySet();
-        for (int spectrum_num : spectrum_num_set) {
+        for (int spectrum_num : result_map.keySet()) {
             int rank = 1;
             ResultEntry result_entry = result_map.get(spectrum_num);
-            String cl_index = result_entry.cl_index;
-            String[] temp = cl_index.split("-");
-            String chain_index_1 = temp[0] + "-" + temp[1];
-            String var_mod_1 = temp[1];
-            String chain_index_2 = temp[2] + "-" + temp[3];
-            String var_mod_2 = temp[3];
-            String alpha_chain = index_chain_map.get(chain_index_1);
-            String beta_chain = index_chain_map.get(chain_index_2);
-            ChainEntry chain_entry_1 = chain_entry_map.get(alpha_chain);
-            ChainEntry chain_entry_2 = chain_entry_map.get(beta_chain);
+            String chain_seq_1 = result_entry.chain_seq_1;
+            String chain_seq_2 = result_entry.chain_seq_2;
+            ChainEntry chain_entry_1 = chain_entry_map.get(chain_seq_1);
+            ChainEntry chain_entry_2 = chain_entry_map.get(chain_seq_2);
             String type = chain_entry_1.chain_type + chain_entry_2.chain_type; // 11 means target, 00, 10, 01 are decoy
 
             // Add fix modification annotation string.
@@ -309,10 +289,10 @@ public class Search {
             String fix_mod_1 = "";
             String fix_mod_2 = "";
             for (String aa : fix_mod_aa) {
-                if (alpha_chain.contains(aa)) {
+                if (chain_seq_1.contains(aa)) {
                     fix_mod_1 += fix_mod_only.get(aa) + "@" + aa + ";";
                 }
-                if (beta_chain.contains(aa)) {
+                if (chain_seq_2.contains(aa)) {
                     fix_mod_2 += fix_mod_only.get(aa) + "@" + aa + ";";
                 }
             }
@@ -321,12 +301,12 @@ public class Search {
                 fix_mod_2 += fix_mod_only.get("Z") + "@Z;";
             }
 
-            String mod_1 = fix_mod_1 + var_mod_1;
-            String mod_2 = fix_mod_2 + var_mod_2;
+            String mod_1 = fix_mod_1;
+            String mod_2 = fix_mod_2;
 
-            ScanHeader scan_header = msxml_parser.rap(spectrum_num).getHeader();
+            SpectrumEntry spectrum_entry = num_spectrum_map.get(spectrum_num);
 
-            int precursor_charge = scan_header.getPrecursorCharge();
+            int precursor_charge = spectrum_entry.precursor_charge;
 
             String pro_1 = chain_entry_1.pro_id;
             if (chain_entry_1.chain_type.contentEquals("0")) {
@@ -345,12 +325,11 @@ public class Search {
 
             double delta_xcorr = result_entry.scond_xcorr / result_entry.xcorr;
 
-            FinalResultEntry re = new FinalResultEntry(spectrum_num, cl_index, rank, precursor_charge, scan_header.getPrecursorMz(), result_entry.abs_ppm, result_entry.xcorr, delta_xcorr, alpha_chain, mod_1, chain_entry_1.pro_id, beta_chain, mod_2, chain_entry_2.pro_id, cl_type, type, -1);
+            FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.abs_ppm, result_entry.xcorr, delta_xcorr, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, -1);
             search_result.add(re);
         }
 
-        Calendar cal_search_end = Calendar.getInstance();
-        double time_search_end = System.nanoTime();
+        float time_search_end = System.nanoTime();
         spectra_duration = (time_search_end - time_search_start) * 1e-9;
 
         System.out.println();
@@ -363,7 +342,7 @@ public class Search {
     }
 
     ///////////////////////////////////////private methods//////////////////////////////////////////////////////////////
-    private void linearSearch(NavigableMap<Integer, List<SpectrumEntry>> sub_spectra_map, int mass1000_1, String chain_index, double[][] seq_ion, List<Integer> link_site_list_1, TreeMap<Integer, List<SemiPSM>> exp_mass1000_2_semiPSM_map) {
+    private void linearSearch(NavigableMap<Integer, List<SpectrumEntry>> sub_spectra_map, String chain_seq, int mass1000_1, float[][] seq_ion, List<Integer> link_site_list_1, TreeMap<Integer, List<SemiPSM>> exp_mass1000_2_semiPSM_map) {
         Set<Integer> exp_mass1000_set = sub_spectra_map.keySet();
         for (int exp_mass1000 : exp_mass1000_set) {
             // Get the MS1 mass range.
@@ -383,33 +362,31 @@ public class Search {
             }
 
             for (int link_site_1 : link_site_list_1) {
-                double[][] pseudo_ion_array = mass_tool.buildPseudoCLIonArray(seq_ion, link_site_1, common_ion_charge, xlink_ion_charge, back1000(exp_mass1000 - mass1000_1));
+                float[][] pseudo_ion_array = mass_tool_obj.buildPseudoCLIonArray(seq_ion, link_site_1, common_ion_charge, xlink_ion_charge, back1000(exp_mass1000 - mass1000_1));
                 List<SpectrumEntry> spectrum_list = sub_spectra_map.get(exp_mass1000);
-                Map<Integer, double[]> charge_mz_map = new HashMap<>();
+                Map<Integer, float[]> charge_mz_map = new HashMap<>();
                 for (SpectrumEntry spectrum_entry : spectrum_list) {
                     int precursor_charge = spectrum_entry.precursor_charge;
-                    double[] theo_mz;
+                    float[] theo_mz;
                     if (charge_mz_map.containsKey(precursor_charge)) {
                         theo_mz = charge_mz_map.get(precursor_charge);
                     } else {
-                        theo_mz = mass_tool.buildVector(pseudo_ion_array, precursor_charge, common_ion_charge[0]);
+                        theo_mz = mass_tool_obj.buildVector(pseudo_ion_array, precursor_charge, common_ion_charge[0]);
                         charge_mz_map.put(precursor_charge, theo_mz);
                     }
 
                     // Calculate dot produce
                     CalScore cal_score = new CalScore(spectrum_entry.mz_intensity_array, theo_mz, ms2_tolerance);
-                    double dot_product = cal_score.cal_dot_product();
+                    float dot_product = cal_score.cal_dot_product();
 
                     // Record result
                     if (dot_product > single_dot_product_t) {
                         int exp_mass1000_2 = exp_mass1000 - mass1000_1 - linker_mass1000;
                         if (exp_mass1000_2_semiPSM_map.containsKey(exp_mass1000_2)) {
-                            List<SemiPSM> temp = exp_mass1000_2_semiPSM_map.get(exp_mass1000_2);
-                            temp.add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_index));
-                            exp_mass1000_2_semiPSM_map.put(exp_mass1000_2, temp);
+                            exp_mass1000_2_semiPSM_map.get(exp_mass1000_2).add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq));
                         } else {
                             List<SemiPSM> temp = new LinkedList<>();
-                            temp.add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_index));
+                            temp.add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq));
                             exp_mass1000_2_semiPSM_map.put(exp_mass1000_2, temp);
                         }
                     }

@@ -8,18 +8,18 @@ public class CalFDR {
 	private static final float MAX_SCORE = 1;
 	private static final float PRECISION = 0.01f;
 
-	private double[] qvalue_array = null;
+	private float[] qvalue_array = null;
 	private List<FinalResultEntry> results = null;
 
 	public CalFDR(List<FinalResultEntry> results) {
 		this.results = results;
 
 		final int array_length = 1 + (int) Math.ceil(MAX_SCORE / PRECISION);
-		double[] decoy_score_vector = new double[array_length];
-		double[] target_score_vector = new double[array_length];
-		double[] fuse_score_vector = new double[array_length];
-		double[] fdr_array = new double[array_length];
-		qvalue_array = new double[array_length];
+		float[] decoy_score_vector = new float[array_length];
+		float[] target_score_vector = new float[array_length];
+		float[] fuse_score_vector = new float[array_length];
+		float[] fdr_array = new float[array_length];
+		qvalue_array = new float[array_length];
 
 		for (FinalResultEntry re : results) {
 			if (re.type.contentEquals("00")) {
@@ -45,11 +45,11 @@ public class CalFDR {
 				fuse_count += fuse_score_vector[idx_2];
 			}
 
-			double fdr;
+			float fdr;
 			if (fuse_count < decoy_count) {
-				fdr = (double) decoy_count / (double) target_count;
+				fdr = (float) decoy_count / (float) target_count;
 			} else {
-				fdr = (double) (fuse_count - decoy_count) / (double) target_count;
+				fdr = (float) (fuse_count - decoy_count) / (float) target_count;
 			}
 
 			fdr = Math.min(fdr, 1); // Adjust those fdrs that are larger than 1
@@ -57,11 +57,11 @@ public class CalFDR {
 		}
 
 		// Convert FDR to qvalue
-		double last_q_value = fdr_array[0];
+		float last_q_value = fdr_array[0];
 		qvalue_array[0] = last_q_value;
 
 		for (int idx_1 = 1; idx_1 < array_length; ++idx_1) {
-			double q_value = fdr_array[idx_1];
+			float q_value = fdr_array[idx_1];
 			if (q_value >= last_q_value) {
 				qvalue_array[idx_1] = last_q_value;
 			} else {

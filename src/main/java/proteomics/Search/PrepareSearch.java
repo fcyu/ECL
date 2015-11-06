@@ -1,73 +1,104 @@
 package proteomics.Search;
 
 import proteomics.Index.*;
+
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import theoSeq.*;
 
 public class PrepareSearch {
 
-	private MassTool mass_tool_obj = null;
-	private Map<String, String> parameter_map = null;
-	private Map<String, String> index_chain_map = null;
-	private Map<String, ChainEntry> chain_entry_map = null;
-	private Map<String, Double> fix_mod_map = new HashMap<>();
+	private Map<String, ChainEntry> chain_entry_map = new HashMap<>();
+	private BuildIndex build_index_obj = null;
 
 	/////////////////////////////public methods///////////////////////////////////////////////////////////////////
 	public PrepareSearch(Map<String, String> parameter_map) throws Exception {
-		this.parameter_map = parameter_map;
+		int nterm_linkable = Integer.valueOf(parameter_map.get("nterm_linkable"));
+		int[] temp = string2Array(parameter_map.get("common_ion_charge"));
+		int min_charge = temp[0];
+		temp = string2Array(parameter_map.get("xlink_ion_charge"));
+		int max_charge = temp[temp.length - 1];
+		Pattern link_site_pattern = Pattern.compile("K(?!$)");
 
-		// Read fix modification
-		fix_mod_map.put("G", Double.valueOf(parameter_map.get("G")));
-		fix_mod_map.put("A", Double.valueOf(parameter_map.get("A")));
-		fix_mod_map.put("S", Double.valueOf(parameter_map.get("S")));
-		fix_mod_map.put("P", Double.valueOf(parameter_map.get("P")));
-		fix_mod_map.put("V", Double.valueOf(parameter_map.get("V")));
-		fix_mod_map.put("T", Double.valueOf(parameter_map.get("T")));
-		fix_mod_map.put("C", Double.valueOf(parameter_map.get("C")));
-		fix_mod_map.put("I", Double.valueOf(parameter_map.get("I")));
-		fix_mod_map.put("L", Double.valueOf(parameter_map.get("L")));
-		fix_mod_map.put("N", Double.valueOf(parameter_map.get("N")));
-		fix_mod_map.put("D", Double.valueOf(parameter_map.get("D")));
-		fix_mod_map.put("Q", Double.valueOf(parameter_map.get("Q")));
-		fix_mod_map.put("K", Double.valueOf(parameter_map.get("K")));
-		fix_mod_map.put("E", Double.valueOf(parameter_map.get("E")));
-		fix_mod_map.put("M", Double.valueOf(parameter_map.get("M")));
-		fix_mod_map.put("H", Double.valueOf(parameter_map.get("H")));
-		fix_mod_map.put("F", Double.valueOf(parameter_map.get("F")));
-		fix_mod_map.put("R", Double.valueOf(parameter_map.get("R")));
-		fix_mod_map.put("Y", Double.valueOf(parameter_map.get("Y")));
-		fix_mod_map.put("W", Double.valueOf(parameter_map.get("W")));
-		fix_mod_map.put("Z", Double.valueOf(parameter_map.get("Z")));
+		build_index_obj = new BuildIndex(parameter_map);
+		MassTool mass_tool_obj = build_index_obj.returnMassTool();
 
-		BuildIndex build_index_obj = new BuildIndex(parameter_map, fix_mod_map);
-		mass_tool_obj = build_index_obj.returnMassToolObj();
+		Map<String, Float> seq_mass_map = build_index_obj.returnSeqMassMap();
+		Map<String, Set<String>> seq_pro_map = build_index_obj.returnSeqProMap();
+		Map<String, Integer> seq_term_type_map = build_index_obj.returnSeqTermTypeMap();
+		Map<String, Float> decoy_seq_mass_map = build_index_obj.returnDecoySeqMassMap();
+		Map<String, String> decoy_seq_pro_map = build_index_obj.returnDecoySeqProMap();
+		Map<String, Integer> decoy_seq_term_type_map = build_index_obj.returnDecoySeqTermTypeMap();
 
-		// Checking whether building a SQL database.
-		System.out.println("Building database index...");
-		build_index_obj.buildCLDb(parameter_map);
+		// target
+		for (String chain_seq : seq_mass_map.keySet()) {
+			float chain_mass = seq_mass_map.get(chain_seq);
+			Set<String> protein_id_set = seq_pro_map.get(chain_seq);
+			int term_type = seq_term_type_map.get(chain_seq);
+			float[][] chain_ion_array = mass_tool_obj.buildChainIonArray(chain_seq, min_charge, max_charge);
 
-		BuildMap build_map_obj = new BuildMap(parameter_map, fix_mod_map);
-		index_chain_map = build_map_obj.returnIndexChainMap();
-		chain_entry_map = build_map_obj.returnChainEntryMap();
-	}
+			// Generate a chain link site map for further use.
+			Matcher link_site_matcher = link_site_pattern.matcher(chain_seq);
+			List<Integer> link_site_list = new LinkedList<>();
+			while (link_site_matcher.find()) {
+				int link_site = link_site_matcher.start();
+				link_site_list.add(link_site);
+			}
 
-	public MassTool returnMassTool() {
-		return mass_tool_obj;
-	}
+			if ((term_type == 1) && !link_site_list.contains(0) && (nterm_linkable == 1)) {
+				link_site_list.add(0);
+			}
 
-	public Map<String, String> returnParameterMap() {
-		return parameter_map;
-	}
+			Iterator<String> iterator_temp = protein_id_set.iterator();
+			String protein_id = iterator_temp.next();
+			while(iterator_temp.hasNext()) {
+				protein_id += "&" + iterator_temp.next();
+			}
+			ChainEntry chain_entry = new ChainEntry(chain_mass, protein_id, "1", link_site_list, chain_ion_array);
+			chain_entry_map.put(chain_seq, chain_entry);
+		}
 
-	public Map<String, String> returnIndexChainMap() {
-		return index_chain_map;
+		// decoy
+		for (String decoy_chain_seq : decoy_seq_mass_map.keySet()) {
+			float decoy_chain_mass = decoy_seq_mass_map.get(decoy_chain_seq);
+			String decoy_protein_id = decoy_seq_pro_map.get(decoy_chain_seq);
+			int decoy_term_type = decoy_seq_term_type_map.get(decoy_chain_seq);
+			float[][] decoy_chain_ion_array = mass_tool_obj.buildChainIonArray(decoy_chain_seq, min_charge, max_charge);
+
+			// Generate a chain link site map for further use.
+			Matcher link_site_matcher = link_site_pattern.matcher(decoy_chain_seq);
+			List<Integer> decoy_link_site_list = new LinkedList<>();
+			while (link_site_matcher.find()) {
+				int link_site = link_site_matcher.start();
+				decoy_link_site_list.add(link_site);
+			}
+
+			if ((decoy_term_type == 1) && !decoy_link_site_list.contains(0) && (nterm_linkable == 1)) {
+				decoy_link_site_list.add(0);
+			}
+
+			ChainEntry chain_entry = new ChainEntry(decoy_chain_mass, decoy_protein_id, "0", decoy_link_site_list, decoy_chain_ion_array);
+			chain_entry_map.put(decoy_chain_seq, chain_entry);
+		}
 	}
 
 	public Map<String, ChainEntry> returnChainEntryMap() {
 		return chain_entry_map;
 	}
 
-	public Map<String, Double> returnFixModMap() {
-		return fix_mod_map;
+	public BuildIndex returnBuildIndex() {
+		return build_index_obj;
+	}
+
+	private int[] string2Array(String str) {
+		String[] temp = str.split(",");
+		int[] output = new int[temp.length];
+		for (int i = 0; i < output.length; ++i) {
+			output[i] = Integer.valueOf(temp[i]);
+		}
+
+		return output;
 	}
 }

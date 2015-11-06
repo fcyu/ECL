@@ -18,7 +18,7 @@ public class SearchMain {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss Z");
         Calendar cal_start = Calendar.getInstance();
         Date date_start = cal_start.getTime();
-        double time_start = System.nanoTime();
+        float time_start = System.nanoTime();
 
         // Process inputs
         if (args.length != 2) {
@@ -33,12 +33,15 @@ public class SearchMain {
         Parameter parameter = new Parameter(parameter_path);
         Map<String, String> parameter_map = parameter.returnParameterMap();
 
+        LogEntry log_entry = new LogEntry("");
+
         // Prepare search
+        System.out.println("Indexing database...");
+        log_entry.output_str += "Indexing database...";
         PrepareSearch ps = new PrepareSearch(parameter_map);
 
         // Searching...
-        LogEntry log_entry = new LogEntry("");
-        Search search = new Search(ps, log_entry);
+        Search search = new Search(ps, log_entry, parameter_map);
         List<FinalResultEntry> search_results = search.doSearch(msxml_path);
 
         if (search_results.isEmpty()) {
@@ -53,7 +56,7 @@ public class SearchMain {
         // Get end time
         Calendar cal_end = Calendar.getInstance();
         Date date_end = cal_end.getTime();
-        double time_end = System.nanoTime();
+        float time_end = System.nanoTime();
 
         double duration = (time_end - time_start) * 1e-9;
 
@@ -77,13 +80,12 @@ public class SearchMain {
         try (BufferedWriter intra_writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.xls"))) {
             intra_writer.write("id\tlabel\tscannr\txcorr\tdeltaXcorr\tabsppm\tpeptide\tproteinId1\n");
             for (FinalResultEntry re : search_results_intra) {
-                String[] temp = re.cl_index.split("-");
-                int link_site_1 = Integer.valueOf(temp[4]) + 1;
-                int link_site_2 = Integer.valueOf(temp[5]) + 1;
+                int link_site_1 = re.link_site_1 + 1;
+                int link_site_2 = re.link_site_2 + 1;
                 if (re.type.contentEquals("11")) {
-                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.sequence_1 + "-" + link_site_1 + "-" + re.sequence_2 + "-" + link_site_2 + ".-" + "\t" + re.protein_id_1 + "-" + re.protein_id_2 + "\n");
+                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
                 } else {
-                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.sequence_1 + "-" + link_site_1 + "-" + re.sequence_2 + "-" + link_site_2 + ".-" + "\t" + re.protein_id_1 + "-" + re.protein_id_2 + "\n");
+                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
                 }
             }
         } catch (IOException ex) {
@@ -94,13 +96,12 @@ public class SearchMain {
         try (BufferedWriter inter_writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.xls"))) {
             inter_writer.write("id\tlabel\tscannr\txcorr\tdeltaXcorr\tabsppm\tpeptide\tproteinId1\n");
             for (FinalResultEntry re : search_results_inter) {
-                String[] temp = re.cl_index.split("-");
-                int link_site_1 = Integer.valueOf(temp[4]) + 1;
-                int link_site_2 = Integer.valueOf(temp[5]) + 1;
+                int link_site_1 = re.link_site_1 + 1;
+                int link_site_2 = re.link_site_2 + 1;
                 if (re.type.contentEquals("11")) {
-                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.sequence_1 + "-" + link_site_1 + "-" + re.sequence_2 + "-" + link_site_2 + ".-" + "\t" + re.protein_id_1 + "-" + re.protein_id_2 + "\n");
+                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
                 } else {
-                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.sequence_1 + "-" + link_site_1 + "-" + re.sequence_2 + "-" + link_site_2 + ".-" + "\t" + re.protein_id_1 + "-" + re.protein_id_2 + "\n");
+                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
                 }
             }
         } catch (IOException ex) {
@@ -129,8 +130,8 @@ public class SearchMain {
     }
 
     private static void help() {
-        String help_str = "ECL version 20151011\r\n"
-                + "A cross-linked peptides identification tool."
+        String help_str = "ECL version 20151106\r\n"
+                + "A cross-linked peptides identification tool.\r\n"
                 + "Author: Fengchao Yu\r\n"
                 + "Email: fyuab@connect.ust.hk\r\n"
                 + "ECL usage: java -Xmx32g -jar /path/to/ECL.jar <parameter_file> <data_file>\r\n"

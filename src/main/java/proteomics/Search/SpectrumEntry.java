@@ -6,9 +6,9 @@ public class SpectrumEntry {
     public float precursor_mz = 0;
 	public float precursor_mass = 0;
 	public int precursor_charge = 0;
-	public double[][] mz_intensity_array = null;
+	public float[][] mz_intensity_array = null;
 	
-	public SpectrumEntry(int scan_num, float precursor_intensity, float precursor_mz, float precursor_mass, int precursor_charge, double[][] mz_intensity_array) {
+	public SpectrumEntry(int scan_num, float precursor_intensity, float precursor_mz, float precursor_mass, int precursor_charge, float[][] mz_intensity_array) {
 		this.scan_num = scan_num;
 		this.precursor_intensity = precursor_intensity;
         this.precursor_mz = precursor_mz;
