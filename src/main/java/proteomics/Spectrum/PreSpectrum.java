@@ -5,7 +5,7 @@ import java.util.*;
 public class PreSpectrum {
 
     private static final float PROTON_MASS = 1.00727646688f;
-	private static final float DEFAULT_INTENSITY = 1; // DO NOT change. Otherwise, change CalScore accordingly.
+    private static final float DEFAULT_INTENSITY = 1; // DO NOT change. Otherwise, change CalScore accordingly.
     private static final float FLOAT_ZERO = 1e-6f;
 
     public static float[][] preProcessSpec(Map<Double, Double> peaks_map, float precursor_mass, int precursor_charge, float ms2_tolerance, float max_mz) {

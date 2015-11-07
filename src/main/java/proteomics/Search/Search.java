@@ -62,7 +62,7 @@ public class Search {
 
     public List<FinalResultEntry> doSearch(String msxml_path) throws Exception {
         // Read mzxml
-        JMzReader spectra_parser = null;
+        MzXMLFile spectra_parser = null;
         try {
             File spectra_file = new File(msxml_path);
             if ((!spectra_file.exists() || (spectra_file.isDirectory()))) {
