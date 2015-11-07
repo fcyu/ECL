@@ -96,8 +96,7 @@ public class PreSpectrum {
         // sqrt the intensity and find the highest intensity.
         TreeMap<Float, Float> sqrt_pl_map = new TreeMap<>();
         float highest_intensity = 0;
-        Set<Float> mz_set = pl_map.keySet();
-        for (float mz : mz_set) {
+        for (float mz : pl_map.keySet()) {
             if (pl_map.get(mz) > FLOAT_ZERO) {
                 float sqrt_intensity = (float) Math.sqrt(pl_map.get(mz));
                 if (sqrt_intensity > highest_intensity) {
@@ -109,8 +108,7 @@ public class PreSpectrum {
 
         // normalize the highest intensity to DEFAULT_INTENSITY
         float factor = DEFAULT_INTENSITY / highest_intensity;
-        mz_set = sqrt_pl_map.keySet();
-        for (float mz : mz_set) {
+        for (float mz : sqrt_pl_map.keySet()) {
             sqrt_pl_map.put(mz, sqrt_pl_map.get(mz) * factor);
         }
 
@@ -147,9 +145,8 @@ public class PreSpectrum {
         }
         temp = (float) Math.sqrt(temp);
 
-        Set<Float> mz_set = mz_intensity_map.keySet();
         int i = 0;
-        for (float mz : mz_set) {
+        for (float mz : mz_intensity_map.keySet()) {
             output[0][i] = mz;
             output[1][i] = mz_intensity_map.get(mz) / temp;
             ++i;

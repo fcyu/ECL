@@ -11,10 +11,9 @@ public class Parameter {
 	public Parameter() throws Exception {
 		Pattern comment_line_pattern = Pattern.compile("^#.*");
 		Pattern comment_pattern = Pattern.compile("([^#]+)#?.*");
-		
-		BufferedReader parameter_reader = new BufferedReader(new FileReader(parameter_file));
-		try {
-			String line = "";
+
+		try (BufferedReader parameter_reader = new BufferedReader(new FileReader(parameter_file))) {
+			String line;
 			while ((line = parameter_reader.readLine()) != null) {
 				line = line.trim();
 				Matcher comment_line_matcher = comment_line_pattern.matcher(line);
@@ -31,14 +30,13 @@ public class Parameter {
 					}
 				}
 			}
+			parameter_reader.close();
 		} catch (IOException ex) {
 			System.err.println("IOException: " + ex.getMessage());
 			System.exit(1);
 		} catch (IllegalStateException ex) {
 			System.err.println("IllegalStateException: " + ex.getMessage());
 			System.exit(1);
-		} finally {
-			parameter_reader.close();
 		}
 	}
 	
@@ -48,10 +46,9 @@ public class Parameter {
 		
 		Pattern comment_line_pattern = Pattern.compile("^#.*");
 		Pattern comment_pattern = Pattern.compile("([^#]+)#?.*");
-		
-		BufferedReader parameter_reader = new BufferedReader(new FileReader(parameter_file));
-		try {
-			String line = "";
+
+		try (BufferedReader parameter_reader = new BufferedReader(new FileReader(parameter_file))) {
+			String line;
 			while ((line = parameter_reader.readLine()) != null) {
 				line = line.trim();
 				Matcher comment_line_matcher = comment_line_pattern.matcher(line);
@@ -68,14 +65,13 @@ public class Parameter {
 					}
 				}
 			}
+			parameter_reader.close();
 		} catch (IOException ex) {
 			System.err.println("IOException: " + ex.getMessage());
 			System.exit(1);
 		} catch (IllegalStateException ex) {
 			System.err.println("IllegalStateException: " + ex.getMessage());
 			System.exit(1);
-		} finally {
-			parameter_reader.close();
 		}
 	}
 	

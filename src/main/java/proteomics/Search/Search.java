@@ -110,9 +110,7 @@ public class Search {
             SpectrumEntry spectrum_entry = new SpectrumEntry(scan_num, spectrum.getPrecursorIntensity().floatValue(), precursor_mz, precursor_mass, precursor_charge, mz_intensity_array);
 
             if (mass1000_spectrum_map.containsKey(round1000(precursor_mass))) {
-                List<SpectrumEntry> spectrum_list = mass1000_spectrum_map.get(round1000(precursor_mass));
-                spectrum_list.add(spectrum_entry);
-                mass1000_spectrum_map.put(round1000(precursor_mass), spectrum_list);
+                mass1000_spectrum_map.get(round1000(precursor_mass)).add(spectrum_entry);
             } else {
                 List<SpectrumEntry> spectrum_list = new LinkedList<>();
                 spectrum_list.add(spectrum_entry);
@@ -128,8 +126,7 @@ public class Search {
         output_str += "Duration: " + (int) spectra_duration + " seconds" + "\r\n";
 
         // Generate a mass chain map.
-        Set<String> chain_set_1 = chain_entry_map.keySet();
-        for (String chain : chain_set_1) {
+        for (String chain : chain_entry_map.keySet()) {
             ChainEntry chain_entry = chain_entry_map.get(chain);
             int mass1000 = round1000(chain_entry.chain_mass);
             if (mass1000_chain_map.containsKey(mass1000)) {
@@ -186,8 +183,7 @@ public class Search {
             }
 
             TreeMap<Integer, List<SemiPSM>> exp_mass1000_2_semiPSM_map = new TreeMap<>();
-            chain_set_1 = mass1000_chain_map.get(mass1000_1);
-            for (String chain_seq_1 : chain_set_1) {
+            for (String chain_seq_1 : mass1000_chain_map.get(mass1000_1)) {
                 ChainEntry chain_entry_1 = this.chain_entry_map.get(chain_seq_1);
                 List<Integer> link_site_list_1 = chain_entry_1.linksite_list;
                 float[][] seq_ion_1 = chain_entry_1.chain_ion_array;
@@ -211,8 +207,7 @@ public class Search {
                 }
                 NavigableMap<Integer, Set<String>> mass1000_2_map = mass1000_chain_map.subMap(mass1000_2_left, true, mass1000_2_right, true);
                 List<SemiPSM> semi_psm_list = exp_mass1000_2_semiPSM_map.get(exp_mass1000_2);
-                Set<Integer> mass1000_2_set = mass1000_2_map.keySet();
-                for (int mass1000_2 : mass1000_2_set) {
+                for (int mass1000_2 : mass1000_2_map.keySet()) {
                     Set<String> chain_set_2 = mass1000_chain_map.get(mass1000_2);
                     for (String chain_seq_2 : chain_set_2) {
                         ChainEntry chain_entry_2 = chain_entry_map.get(chain_seq_2);
@@ -266,8 +261,7 @@ public class Search {
 
         // Build a fix modification only map for further use.
         Map<String, Float> fix_mod_only = new HashMap<>();
-        Set<String> aa_set = fix_mod_map.keySet();
-        for (String aa : aa_set) {
+        for (String aa : fix_mod_map.keySet()) {
             float mod_mass = fix_mod_map.get(aa);
             if (mod_mass != 0.0) {
                 fix_mod_only.put(aa, mod_mass);
@@ -343,8 +337,7 @@ public class Search {
 
     ///////////////////////////////////////private methods//////////////////////////////////////////////////////////////
     private void linearSearch(NavigableMap<Integer, List<SpectrumEntry>> sub_spectra_map, String chain_seq, int mass1000_1, float[][] seq_ion, List<Integer> link_site_list_1, TreeMap<Integer, List<SemiPSM>> exp_mass1000_2_semiPSM_map) {
-        Set<Integer> exp_mass1000_set = sub_spectra_map.keySet();
-        for (int exp_mass1000 : exp_mass1000_set) {
+        for (int exp_mass1000 : sub_spectra_map.keySet()) {
             // Get the MS1 mass range.
             int mass1000_2_left = 0;
             int mass1000_2_right = 0;

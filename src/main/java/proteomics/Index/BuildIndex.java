@@ -111,8 +111,7 @@ public class BuildIndex {
 
 	//////////////////////////////////////////private methods////////////////////////////////////////////////////////
 	private void buildPepChainMap() {
-		Set<String> pro_id_set = pro_seq_map.keySet();
-		for (String pro_id : pro_id_set) {
+		for (String pro_id : pro_seq_map.keySet()) {
 			String pro_seq = pro_seq_map.get(pro_id);
 			Set<String> seq_set = mass_tool_obj.buildChainSet(pro_seq);
 			for (String seq : seq_set) {
@@ -150,8 +149,7 @@ public class BuildIndex {
 	}
 
 	private void buildDecoyPepChainMap() throws Exception {
-		Set<String> seq_set = seq_pro_map.keySet();
-		for (String original_seq : seq_set) {
+		for (String original_seq : seq_pro_map.keySet()) {
 			String decoy_seq;
 			if (original_seq.endsWith("K") || original_seq.endsWith("R")) {
 				String temp = reverseSeq(original_seq.substring(0, original_seq.length() - 1));
