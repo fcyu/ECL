@@ -1,6 +1,5 @@
 package proteomics.Search;
 
-import uk.ac.ebi.pride.tools.jmzreader.*;
 import uk.ac.ebi.pride.tools.jmzreader.model.*;
 import uk.ac.ebi.pride.tools.mzxml_parser.*;
 import proteomics.Index.BuildIndex;
