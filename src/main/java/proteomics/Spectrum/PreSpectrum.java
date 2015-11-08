@@ -122,6 +122,7 @@ public class PreSpectrum {
             NavigableMap<Float, Float> sub_map = sqrt_pl_map.subMap(left_mz, true, right_mz, true);
             if (!sub_map.isEmpty()) {
                 Float[] intensity_array = sub_map.values().toArray(new Float[sub_map.size()]);
+                Arrays.sort(intensity_array);
                 float temp_1 = DEFAULT_INTENSITY / intensity_array[intensity_array.length - 1];
                 float temp_2 = (float) 0.05 * intensity_array[intensity_array.length - 1];
                 for (float mz : sub_map.keySet()) {

@@ -19,6 +19,7 @@ public class PrepareSearch {
 		int[] temp = string2Array(parameter_map.get("common_ion_charge"));
 		int min_charge = temp[0];
 		temp = string2Array(parameter_map.get("xlink_ion_charge"));
+		Arrays.sort(temp);
 		int max_charge = temp[temp.length - 1];
 		Pattern link_site_pattern = Pattern.compile("K(?!$)");
 
