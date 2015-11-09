@@ -158,9 +158,9 @@ public class Search {
         float total = (float) mass1000_1_max_idx;
         for (int i = 0; i <= mass1000_1_max_idx; ++i) {
             ++step;
-            int progress = (int) Math.floor(step * 10 / total);
+            int progress = (int) Math.floor(step * 100 / total);
             if (progress != last_progress) {
-                System.out.print(progress + "0% ");
+                System.out.print("\r" + progress + "%");
                 last_progress = progress;
             }
 
