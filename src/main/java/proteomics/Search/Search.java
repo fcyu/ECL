@@ -243,12 +243,12 @@ public class Search {
                                         ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, xcorr, last_result.xcorr);
                                         result_map.put(scan_num, result_entry);
                                     } else if (xcorr > last_result.scond_xcorr) {
-                                        result_map.get(scan_num).scond_xcorr = xcorr; // TODO; check
+                                        result_map.get(scan_num).scond_xcorr = xcorr;
                                     }
                                 } else {
                                     float total_mass = back1000(mass1000_1 + mass1000_2) + linker_mass;
                                     float abs_ppm = (float) (Math.abs(spectrum_entry.precursor_mass - total_mass) * 1e6 / total_mass);
-                                    ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, xcorr, 0);
+                                    ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, xcorr, -1);
                                     result_map.put(scan_num, result_entry);
                                 }
                             }
@@ -316,7 +316,10 @@ public class Search {
                 cl_type = "inter_protein";
             }
 
-            double delta_xcorr = result_entry.scond_xcorr / result_entry.xcorr;
+            double delta_xcorr = 1;
+            if (Math.abs(result_entry.scond_xcorr + 1) > 1e-6) {
+                delta_xcorr = result_entry.scond_xcorr / result_entry.xcorr;
+            }
 
             FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.abs_ppm, result_entry.xcorr, delta_xcorr, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, -1);
             search_result.add(re);
