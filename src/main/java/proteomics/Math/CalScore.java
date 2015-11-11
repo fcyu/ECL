@@ -5,13 +5,13 @@ public class CalScore {
 
 	private float[][] alignment_matrix = null;
 
-	public CalScore(float[][] exp_matrix, float[] theo_vector, float xcorr_tolerance) {
+	public CalScore(float[][] exp_matrix, float[] theo_vector, float ms2_tolerance) {
 		alignment_matrix = new float[2][exp_matrix[0].length + theo_vector.length];
 
 		int start = 0;
 		int idx = 0;
 		for (float theo_mz : theo_vector) {
-			if (exp_matrix[0][0] - theo_mz > xcorr_tolerance) {
+			if (exp_matrix[0][0] - theo_mz > ms2_tolerance) {
 				continue;
 			}
 			
@@ -19,11 +19,11 @@ public class CalScore {
 			while (j < exp_matrix[0].length) {
 				float exp_mz = exp_matrix[0][j];
 				float temp = exp_mz - theo_mz;
-				if ((temp >= -xcorr_tolerance) && (temp <= xcorr_tolerance)) {
+				if ((temp >= -ms2_tolerance) && (temp <= ms2_tolerance)) {
 					alignment_matrix[0][idx] = exp_mz;
 					alignment_matrix[1][idx] = exp_matrix[1][j];
 					++idx;
-				} else if (temp > xcorr_tolerance) {
+				} else if (temp > ms2_tolerance) {
 					start = j - 1;
 					break;
 				}

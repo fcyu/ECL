@@ -78,14 +78,14 @@ public class SearchMain {
     //////////////////////////////////////////private methods///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private static void saveResult2CSV(List<FinalResultEntry> search_results_intra, List<FinalResultEntry> search_results_inter, String id_file_name) throws Exception {
         try (BufferedWriter intra_writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.xls"))) {
-            intra_writer.write("id\tlabel\tscannr\txcorr\tdeltaXcorr\tabsppm\tpeptide\tproteinId1\n");
+            intra_writer.write("id\tlabel\tscannr\tscore\tdeltaScore\tabsppm\tpeptide\tproteinId1\n");
             for (FinalResultEntry re : search_results_intra) {
                 int link_site_1 = re.link_site_1 + 1;
                 int link_site_2 = re.link_site_2 + 1;
                 if (re.type.contentEquals("11")) {
-                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
+                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
                 } else {
-                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
+                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
                 }
             }
         } catch (IOException ex) {
@@ -94,14 +94,14 @@ public class SearchMain {
         }
 
         try (BufferedWriter inter_writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.xls"))) {
-            inter_writer.write("id\tlabel\tscannr\txcorr\tdeltaXcorr\tabsppm\tpeptide\tproteinId1\n");
+            inter_writer.write("id\tlabel\tscannr\tscore\tdeltaScore\tabsppm\tpeptide\tproteinId1\n");
             for (FinalResultEntry re : search_results_inter) {
                 int link_site_1 = re.link_site_1 + 1;
                 int link_site_2 = re.link_site_2 + 1;
                 if (re.type.contentEquals("11")) {
-                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
+                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
                 } else {
-                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.xcorr + "\t" + re.delta_xcorr + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
+                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
                 }
             }
         } catch (IOException ex) {

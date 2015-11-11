@@ -23,13 +23,13 @@ public class CalFDR {
 
 		for (FinalResultEntry re : results) {
 			if (re.type.contentEquals("00")) {
-				int idx = (int) Math.floor(re.xcorr / PRECISION);
+				int idx = (int) Math.floor(re.score / PRECISION);
 				++decoy_score_vector[idx];
 			} else if (re.type.contentEquals("11")) {
-				int idx = (int) Math.floor(re.xcorr / PRECISION);
+				int idx = (int) Math.floor(re.score / PRECISION);
 				++target_score_vector[idx];
 			} else {
-				int idx = (int) Math.floor(re.xcorr / PRECISION);
+				int idx = (int) Math.floor(re.score / PRECISION);
 				++fuse_score_vector[idx];
 			}
 		}
@@ -74,7 +74,7 @@ public class CalFDR {
 	public List<FinalResultEntry> includeStats() {
 		for (FinalResultEntry re : results) {
 			if (re.type.contentEquals("11")) {
-				int idx = (int) Math.floor(re.xcorr / PRECISION);
+				int idx = (int) Math.floor(re.score / PRECISION);
 				re.qvalue = qvalue_array[idx];
 			}
 		}

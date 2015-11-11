@@ -18,7 +18,7 @@ public class PreSpectrum {
         // normalize
         TreeMap<Float, Float> normzlized_pl_map = normalizeSpec(denoised_pl_map);
 
-        return prepareXcorr(normzlized_pl_map);
+        return prepareScore(normzlized_pl_map);
     }
 
     private static TreeMap<Float, Float> removePrecursorPeak(Map<Double, Double> peak_map, float precursor_mass, int precursor_charge, float ms2_tolerance) {
@@ -136,7 +136,7 @@ public class PreSpectrum {
         return windowed_pl_map;
     }
 
-    private static float[][] prepareXcorr(TreeMap<Float, Float> mz_intensity_map) {
+    private static float[][] prepareScore(TreeMap<Float, Float> mz_intensity_map) {
         float[][] output = new float[2][mz_intensity_map.size()];
 
         Collection<Float> intensity_list = mz_intensity_map.values();

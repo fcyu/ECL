@@ -232,23 +232,23 @@ public class Search {
                                 }
 
                                 // Calculate final score
-                                double xcorr = (semi_psm.dot_product + dot_product_2) / Math.sqrt(semi_psm.ion_num + theo_mz_2.length);
+                                double score = (semi_psm.dot_product + dot_product_2) / Math.sqrt(semi_psm.ion_num + theo_mz_2.length);
 
                                 // record result
                                 if (result_map.containsKey(scan_num)) {
                                     ResultEntry last_result = result_map.get(scan_num);
-                                    if (xcorr > last_result.xcorr) {
+                                    if (score > last_result.score) {
                                         float total_mass = back1000(mass1000_1 + mass1000_2) + linker_mass;
                                         float abs_ppm = (float) (Math.abs(spectrum_entry.precursor_mass - total_mass) * 1e6 / total_mass);
-                                        ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, xcorr, last_result.xcorr);
+                                        ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, score, last_result.score);
                                         result_map.put(scan_num, result_entry);
-                                    } else if (xcorr > last_result.scond_xcorr) {
-                                        result_map.get(scan_num).scond_xcorr = xcorr;
+                                    } else if (score > last_result.scond_score) {
+                                        result_map.get(scan_num).scond_score = score;
                                     }
                                 } else {
                                     float total_mass = back1000(mass1000_1 + mass1000_2) + linker_mass;
                                     float abs_ppm = (float) (Math.abs(spectrum_entry.precursor_mass - total_mass) * 1e6 / total_mass);
-                                    ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, xcorr, -1);
+                                    ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, score, -1);
                                     result_map.put(scan_num, result_entry);
                                 }
                             }
@@ -316,12 +316,12 @@ public class Search {
                 cl_type = "inter_protein";
             }
 
-            double delta_xcorr = 1;
-            if (Math.abs(result_entry.scond_xcorr + 1) > 1e-6) {
-                delta_xcorr = result_entry.scond_xcorr / result_entry.xcorr;
+            double delta_score = 1;
+            if (Math.abs(result_entry.scond_score + 1) > 1e-6) {
+                delta_score = result_entry.scond_score / result_entry.score;
             }
 
-            FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.abs_ppm, result_entry.xcorr, delta_xcorr, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, -1);
+            FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.abs_ppm, result_entry.score, delta_score, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, -1);
             search_result.add(re);
         }
 
