@@ -84,7 +84,12 @@ public class Search {
                 continue;
             }
 
-            int precursor_charge = spectrum.getPrecursorCharge();
+            int precursor_charge;
+            try {
+                precursor_charge = spectrum.getPrecursorCharge();
+            } catch (Exception ex) {
+                continue;
+            }
             if ((precursor_charge < ms1_charge[0]) || (precursor_charge > ms1_charge[ms1_charge.length - 1])) {
                 continue;
             }
