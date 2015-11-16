@@ -1,4 +1,4 @@
-# ExhaustiveCL
+# ECL
 A fast and exhaustive cross-linked peptides identification tool.
 
 ## How to use it?
