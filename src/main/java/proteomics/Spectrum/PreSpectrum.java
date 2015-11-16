@@ -117,9 +117,14 @@ public class PreSpectrum {
         float window_size = (sqrt_pl_map.lastKey() - sqrt_pl_map.firstKey()) / 10 + 1;
         for (int i = 0; i < 10; ++i) {
             // find the max intensity in each window
-            float left_mz = sqrt_pl_map.firstKey() + i * window_size;
+            float left_mz = Math.min(sqrt_pl_map.firstKey() + i * window_size, sqrt_pl_map.lastKey());
             float right_mz = Math.min(left_mz + window_size, sqrt_pl_map.lastKey());
-            NavigableMap<Float, Float> sub_map = sqrt_pl_map.subMap(left_mz, true, right_mz, true);
+            NavigableMap<Float, Float> sub_map;
+            if (right_mz < sqrt_pl_map.lastKey()) {
+                sub_map = sqrt_pl_map.subMap(left_mz, true, right_mz, false);
+            } else {
+                sub_map = sqrt_pl_map.subMap(left_mz, true, right_mz, true);
+            }
             if (!sub_map.isEmpty()) {
                 Float[] intensity_array = sub_map.values().toArray(new Float[sub_map.size()]);
                 Arrays.sort(intensity_array);
