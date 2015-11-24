@@ -159,11 +159,8 @@ public class Search {
             }
         }
         int last_progress = 0;
-        float step = 0;
-        float total = (float) mass1000_1_max_idx;
         for (int i = 0; i <= mass1000_1_max_idx; ++i) {
-            ++step;
-            int progress = (int) Math.floor(step * 100 / total);
+            int progress = i * 100 / mass1000_1_max_idx;
             if (progress != last_progress) {
                 System.out.print("\r" + progress + "%");
                 last_progress = progress;
