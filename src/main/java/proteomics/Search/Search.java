@@ -50,7 +50,7 @@ public class Search {
         common_ion_charge = string2Array(parameter_map.get("common_ion_charge"));
         xlink_ion_charge = string2Array(parameter_map.get("xlink_ion_charge"));
         ms1_tolerance_unit = Integer.valueOf(parameter_map.get("ms1_tolerance_unit"));
-        ms1_tolerance = Float.valueOf(parameter_map.get("ms1_tolerance"));
+        ms1_tolerance = Float.valueOf(parameter_map.get("ms1_tolerance")) * 1.1f; // consider rounding error.
         ms2_tolerance = Float.valueOf(parameter_map.get("ms2_tolerance"));
         linker_mass = Float.valueOf(parameter_map.get("cl_mass")) - 2 * Float.valueOf(parameter_map.get("K"));
         linker_mass1000 = round1000(linker_mass);
@@ -84,12 +84,11 @@ public class Search {
                 continue;
             }
 
-            int precursor_charge;
-            try {
-                precursor_charge = spectrum.getPrecursorCharge();
-            } catch (Exception ex) {
+            if (spectrum.getPrecursorCharge() == null) {
                 continue;
             }
+            int precursor_charge = spectrum.getPrecursorCharge();
+
             if ((precursor_charge < ms1_charge[0]) || (precursor_charge > ms1_charge[ms1_charge.length - 1])) {
                 continue;
             }
@@ -314,7 +313,7 @@ public class Search {
             }
 
             String cl_type = "intra_protein";
-            if (!pro_1.contentEquals(pro_2)) {
+            if ((!pro_1.contentEquals(pro_2)) || chain_seq_1.contentEquals(chain_seq_2) || chain_seq_1.contains(chain_seq_2) || chain_seq_2.contains(chain_seq_1)) {
                 cl_type = "inter_protein";
             }
 
