@@ -13,7 +13,7 @@ public class PreSpectrum {
         TreeMap<Float, Float> temp = removePrecursorPeak(peaks_map, precursor_mass, precursor_charge, ms2_tolerance);
 
         // reduce noise
-        TreeMap<Float, Float> denoised_pl_map = deNoise(new TreeMap<>(temp.subMap(0f, max_mz)));
+        TreeMap<Float, Float> denoised_pl_map = deNoise(new TreeMap<>(temp.subMap(0f, true, max_mz, true)));
 
         // normalize
         TreeMap<Float, Float> normzlized_pl_map = normalizeSpec(denoised_pl_map);
@@ -40,9 +40,14 @@ public class PreSpectrum {
         TreeMap<Float, Float> denoised_pl_map = new TreeMap<>();
         float window_size = (pl_map.lastKey() - pl_map.firstKey()) / 10 + 1;
         for (int i = 0; i < 10; ++i) {
-            float left_mz = pl_map.firstKey() + i * window_size;
+            float left_mz = Math.min(pl_map.firstKey() + i * window_size, pl_map.lastKey());
             float right_mz = Math.min(left_mz + window_size, pl_map.lastKey());
-            NavigableMap<Float, Float> sub_pl_map = pl_map.subMap(left_mz, true, right_mz, true);
+            NavigableMap<Float, Float> sub_pl_map;
+            if (right_mz < pl_map.lastKey()) {
+                sub_pl_map = pl_map.subMap(left_mz, true, right_mz, false);
+            } else {
+                sub_pl_map = pl_map.subMap(left_mz, true, right_mz, true);
+            }
             if (sub_pl_map.size() > 4) {
                 float noise_intensity = estimateNoiseIntensity(sub_pl_map);
                 for (float mz : sub_pl_map.keySet()) {
