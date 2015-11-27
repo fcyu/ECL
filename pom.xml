@@ -4,7 +4,7 @@
 
 	<groupId>proteomics</groupId>
 	<artifactId>ECL</artifactId>
-	<version>20151111</version>
+	<version>20151127</version>
 	<packaging>jar</packaging>
 
 	<name>ECL</name>

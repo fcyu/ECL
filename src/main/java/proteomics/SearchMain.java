@@ -4,6 +4,7 @@ import proteomics.Parameter.Parameter;
 import proteomics.Search.FinalResultEntry;
 import proteomics.Search.PrepareSearch;
 import proteomics.Search.Search;
+import proteomics.Validation.CalFDR;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -46,11 +47,23 @@ public class SearchMain {
 
         if (search_results.isEmpty()) {
             System.out.println("There is no PSM.");
+            log_entry.output_str += "There is no PSM.";
         } else {
             // save result
+            System.out.println("Saving results as Percolator format...");
+            log_entry.output_str += "Saving results as Percolator format...";
             List<List<FinalResultEntry>> picked_result = pickResult(search_results);
+            savePercolatorFormat(picked_result.get(0), picked_result.get(1), msxml_path);
+
+            System.out.println("Estimating q value...");
+            log_entry.output_str += "Estimating q value...";
+            CalFDR cal_fdr_obj = new CalFDR(picked_result.get(0), false);
+            List<FinalResultEntry> intra_result = cal_fdr_obj.includeStats();
+            cal_fdr_obj = new CalFDR(picked_result.get(1), false);
+            List<FinalResultEntry> inter_result = cal_fdr_obj.includeStats();
             System.out.println("Saving results...");
-            saveResult2CSV(picked_result.get(0), picked_result.get(1), msxml_path);
+            log_entry.output_str += "Saving results...";
+            saveResult(intra_result, inter_result, msxml_path);
         }
 
         // Get end time
@@ -75,9 +88,8 @@ public class SearchMain {
         System.out.println("Done.");
     }
 
-    //////////////////////////////////////////private methods///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    private static void saveResult2CSV(List<FinalResultEntry> search_results_intra, List<FinalResultEntry> search_results_inter, String id_file_name) throws Exception {
-        try (BufferedWriter intra_writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.xls"))) {
+    private static void savePercolatorFormat(List<FinalResultEntry> search_results_intra, List<FinalResultEntry> search_results_inter, String id_file_name) throws Exception {
+        try (BufferedWriter intra_writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.pin"))) {
             intra_writer.write("id\tlabel\tscannr\tscore\tdeltaScore\tabsppm\tpeptide\tproteinId1\n");
             for (FinalResultEntry re : search_results_intra) {
                 int link_site_1 = re.link_site_1 + 1;
@@ -93,7 +105,7 @@ public class SearchMain {
             System.exit(1);
         }
 
-        try (BufferedWriter inter_writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.xls"))) {
+        try (BufferedWriter inter_writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.pin"))) {
             inter_writer.write("id\tlabel\tscannr\tscore\tdeltaScore\tabsppm\tpeptide\tproteinId1\n");
             for (FinalResultEntry re : search_results_inter) {
                 int link_site_1 = re.link_site_1 + 1;
@@ -102,6 +114,38 @@ public class SearchMain {
                     inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
                 } else {
                     inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
+                }
+            }
+        } catch (IOException ex) {
+            System.err.println("IOException: " + ex.getMessage());
+            System.exit(1);
+        }
+    }
+
+    private static void saveResult(List<FinalResultEntry> intra_result, List<FinalResultEntry> inter_result, String id_file_name) throws Exception {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.csv"))) {
+            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,peptide_2,site_2,mod_2,protein_2,q_value\n");
+            for (FinalResultEntry re : intra_result) {
+                if (re.type.contentEquals("11")) {
+                    int link_site_1 = re.link_site_1 + 1;
+                    int link_site_2 = re.link_site_2 + 1;
+                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + re.score + "," + re.delta_score + "," + re.abs_ppm + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + re.qvalue + "\n");
+
+                }
+            }
+        } catch (IOException ex) {
+            System.err.println("IOException: " + ex.getMessage());
+            System.exit(1);
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.csv"))) {
+            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,peptide_2,site_2,mod_2,protein_2,q_value\n");
+            for (FinalResultEntry re : inter_result) {
+                if (re.type.contentEquals("11")) {
+                    int link_site_1 = re.link_site_1 + 1;
+                    int link_site_2 = re.link_site_2 + 1;
+                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + re.score + "," + re.delta_score + "," + re.abs_ppm + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + re.qvalue + "\n");
+
                 }
             }
         } catch (IOException ex) {
@@ -130,7 +174,7 @@ public class SearchMain {
     }
 
     private static void help() {
-        String help_str = "ECL version 20151111\r\n"
+        String help_str = "ECL version 20151127\r\n"
                 + "A cross-linked peptides identification tool.\r\n"
                 + "Author: Fengchao Yu\r\n"
                 + "Email: fyuab@connect.ust.hk\r\n"
