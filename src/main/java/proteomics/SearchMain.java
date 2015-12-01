@@ -82,7 +82,7 @@ public class SearchMain {
                     + "Log: \r\n"
                     + log_entry.output_str + "\r\n");
         } catch (IOException ex) {
-            System.err.println(ex.getMessage());
+            ex.printStackTrace();
         }
 
         System.out.println("Done.");

@@ -69,7 +69,7 @@ public class Search {
             }
             spectra_parser = new MzXMLFile(spectra_file);
         } catch (FileNotFoundException | MzXMLParsingException ex) {
-            System.err.println(ex.getMessage());
+            ex.printStackTrace();
             System.exit(1);
         }
 
