@@ -50,13 +50,9 @@ public class SearchMain {
             log_entry.output_str += "There is no PSM.";
         } else {
             // save result
-            System.out.println("Saving results as Percolator format...");
-            log_entry.output_str += "Saving results as Percolator format...";
-            List<List<FinalResultEntry>> picked_result = pickResult(search_results);
-            savePercolatorFormat(picked_result.get(0), picked_result.get(1), msxml_path);
-
             System.out.println("Estimating q value...");
             log_entry.output_str += "Estimating q value...";
+            List<List<FinalResultEntry>> picked_result = pickResult(search_results);
             CalFDR cal_fdr_obj = new CalFDR(picked_result.get(0), false);
             List<FinalResultEntry> intra_result = cal_fdr_obj.includeStats();
             cal_fdr_obj = new CalFDR(picked_result.get(1), false);
@@ -86,40 +82,6 @@ public class SearchMain {
         }
 
         System.out.println("Done.");
-    }
-
-    private static void savePercolatorFormat(List<FinalResultEntry> search_results_intra, List<FinalResultEntry> search_results_inter, String id_file_name) throws Exception {
-        try (BufferedWriter intra_writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.pin"))) {
-            intra_writer.write("id\tlabel\tscannr\tscore\tdeltaScore\tabsppm\tpeptide\tproteinId1\n");
-            for (FinalResultEntry re : search_results_intra) {
-                int link_site_1 = re.link_site_1 + 1;
-                int link_site_2 = re.link_site_2 + 1;
-                if (re.type.contentEquals("11")) {
-                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
-                } else {
-                    intra_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
-                }
-            }
-        } catch (IOException ex) {
-            System.err.println("IOException: " + ex.getMessage());
-            System.exit(1);
-        }
-
-        try (BufferedWriter inter_writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.pin"))) {
-            inter_writer.write("id\tlabel\tscannr\tscore\tdeltaScore\tabsppm\tpeptide\tproteinId1\n");
-            for (FinalResultEntry re : search_results_inter) {
-                int link_site_1 = re.link_site_1 + 1;
-                int link_site_2 = re.link_site_2 + 1;
-                if (re.type.contentEquals("11")) {
-                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
-                } else {
-                    inter_writer.write(re.spectrum_id + "." + re.charge + "\t" + "-1" + "\t" + re.spectrum_id + "\t" + re.score + "\t" + re.delta_score + "\t" + re.abs_ppm + "\t" + "-." + re.seq_1 + "-" + link_site_1 + "-" + re.seq_2 + "-" + link_site_2 + ".-" + "\t" + re.pro_id_1 + "-" + re.pro_id_2 + "\n");
-                }
-            }
-        } catch (IOException ex) {
-            System.err.println("IOException: " + ex.getMessage());
-            System.exit(1);
-        }
     }
 
     private static void saveResult(List<FinalResultEntry> intra_result, List<FinalResultEntry> inter_result, String id_file_name) throws Exception {
