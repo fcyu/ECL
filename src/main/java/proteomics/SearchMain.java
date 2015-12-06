@@ -55,8 +55,10 @@ public class SearchMain {
             List<List<FinalResultEntry>> picked_result = pickResult(search_results);
             CalFDR cal_fdr_obj = new CalFDR(picked_result.get(0), false);
             List<FinalResultEntry> intra_result = cal_fdr_obj.includeStats();
+            Collections.sort(intra_result);
             cal_fdr_obj = new CalFDR(picked_result.get(1), false);
             List<FinalResultEntry> inter_result = cal_fdr_obj.includeStats();
+            Collections.sort(inter_result);
             System.out.println("Saving results...");
             log_entry.output_str += "Saving results...";
             saveResult(intra_result, inter_result, msxml_path);

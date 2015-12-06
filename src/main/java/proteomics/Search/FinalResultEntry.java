@@ -1,6 +1,6 @@
 package proteomics.Search;
 
-public class FinalResultEntry {
+public class FinalResultEntry implements Comparable<FinalResultEntry> {
 
 	public int spectrum_id = 0;
 	public int rank = 0;
@@ -41,4 +41,14 @@ public class FinalResultEntry {
 		this.type = type;
 		this.qvalue = qvalue;
 	}
+
+	public int compareTo(FinalResultEntry other) {
+        if (this.qvalue > other.qvalue) {
+            return 1;
+        } else if (this.qvalue < other.qvalue) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
 }
