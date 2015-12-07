@@ -55,10 +55,10 @@ public class SearchMain {
             List<List<FinalResultEntry>> picked_result = pickResult(search_results);
             CalFDR cal_fdr_obj = new CalFDR(picked_result.get(0), false);
             List<FinalResultEntry> intra_result = cal_fdr_obj.includeStats();
-            Collections.sort(intra_result);
+            Collections.sort(intra_result, Collections.<FinalResultEntry>reverseOrder());
             cal_fdr_obj = new CalFDR(picked_result.get(1), false);
             List<FinalResultEntry> inter_result = cal_fdr_obj.includeStats();
-            Collections.sort(inter_result);
+            Collections.sort(inter_result, Collections.<FinalResultEntry>reverseOrder());
             System.out.println("Saving results...");
             log_entry.output_str += "Saving results...";
             saveResult(intra_result, inter_result, msxml_path);
@@ -93,8 +93,7 @@ public class SearchMain {
                 if (re.type.contentEquals("11")) {
                     int link_site_1 = re.link_site_1 + 1;
                     int link_site_2 = re.link_site_2 + 1;
-                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + re.score + "," + re.delta_score + "," + re.abs_ppm + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + re.qvalue + "\n");
-
+                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.abs_ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + String.format("%.2f", re.qvalue) + "\n");
                 }
             }
         } catch (IOException ex) {
@@ -108,8 +107,7 @@ public class SearchMain {
                 if (re.type.contentEquals("11")) {
                     int link_site_1 = re.link_site_1 + 1;
                     int link_site_2 = re.link_site_2 + 1;
-                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + re.score + "," + re.delta_score + "," + re.abs_ppm + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + re.qvalue + "\n");
-
+                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.abs_ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + String.format("%.2f", re.qvalue) + "\n");
                 }
             }
         } catch (IOException ex) {

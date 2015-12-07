@@ -43,9 +43,9 @@ public class FinalResultEntry implements Comparable<FinalResultEntry> {
 	}
 
 	public int compareTo(FinalResultEntry other) {
-        if (this.qvalue > other.qvalue) {
+        if (this.score > other.score) {
             return 1;
-        } else if (this.qvalue < other.qvalue) {
+        } else if (this.score < other.score) {
             return -1;
         } else {
             return 0;
