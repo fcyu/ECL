@@ -14,6 +14,7 @@ public class BuildIndex {
 	private int max_chain_length = 0;
 	private MassTool mass_tool_obj = null;
 	private Map<String, String> pro_seq_map = null;
+	private Map<String, String> pro_annotate_map = null;
 	private Map<String, Float> seq_mass_map = new HashMap<>();
 	private Map<String, Set<String>> seq_pro_map = new HashMap<>();
 	private Set<String> for_check_duplitate = new HashSet<>();
@@ -60,6 +61,7 @@ public class BuildIndex {
 		// read protein database
 		DbTool db_tool_obj = new DbTool(db_path);
 		pro_seq_map = db_tool_obj.returnSeqMap();
+        pro_annotate_map = db_tool_obj.returnAnnotateMap();
 
 		// define a new MassTool object
 		mass_tool_obj = new MassTool(missed_cleavage, fix_mod_map, nterm_linkable);
@@ -80,6 +82,10 @@ public class BuildIndex {
 	public Map<String, String> returnProSeqMap() {
 		return pro_seq_map;
 	}
+
+    public Map<String, String> getProAnnotateMap() {
+        return pro_annotate_map;
+    }
 
 	public Map<String, Float> returnSeqMassMap() {
 		return seq_mass_map;

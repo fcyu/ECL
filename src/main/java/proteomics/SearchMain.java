@@ -40,6 +40,7 @@ public class SearchMain {
         System.out.println("Indexing database...");
         log_entry.output_str += "Indexing database...";
         PrepareSearch ps = new PrepareSearch(parameter_map);
+        Map<String, String> pro_annotate_map = ps.returnBuildIndex().getProAnnotateMap();
 
         // Searching...
         Search search = new Search(ps, log_entry, parameter_map);
@@ -61,7 +62,7 @@ public class SearchMain {
             Collections.sort(inter_result, Collections.<FinalResultEntry>reverseOrder());
             System.out.println("Saving results...");
             log_entry.output_str += "Saving results...";
-            saveResult(intra_result, inter_result, msxml_path);
+            saveResult(intra_result, inter_result, pro_annotate_map, msxml_path);
         }
 
         // Get end time
@@ -86,14 +87,16 @@ public class SearchMain {
         System.out.println("Done.");
     }
 
-    private static void saveResult(List<FinalResultEntry> intra_result, List<FinalResultEntry> inter_result, String id_file_name) throws Exception {
+    private static void saveResult(List<FinalResultEntry> intra_result, List<FinalResultEntry> inter_result, Map<String, String> pro_annotate_map, String id_file_name) throws Exception {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.csv"))) {
-            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,peptide_2,site_2,mod_2,protein_2,q_value\n");
+            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
             for (FinalResultEntry re : intra_result) {
                 if (re.type.contentEquals("11")) {
                     int link_site_1 = re.link_site_1 + 1;
                     int link_site_2 = re.link_site_2 + 1;
-                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.abs_ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + String.format("%.2f", re.qvalue) + "\n");
+                    String annotate_1 = pro_annotate_map.get(re.pro_id_1).replace(",", ";");
+                    String annotate_2 = pro_annotate_map.get(re.pro_id_2).replace(",", ";");
+                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.abs_ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + ',' + annotate_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + annotate_2 + "," + String.format("%.2f", re.qvalue) + "\n");
                 }
             }
         } catch (IOException ex) {
@@ -102,12 +105,14 @@ public class SearchMain {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.csv"))) {
-            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,peptide_2,site_2,mod_2,protein_2,q_value\n");
+            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
             for (FinalResultEntry re : inter_result) {
                 if (re.type.contentEquals("11")) {
                     int link_site_1 = re.link_site_1 + 1;
                     int link_site_2 = re.link_site_2 + 1;
-                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.abs_ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + String.format("%.2f", re.qvalue) + "\n");
+                    String annotate_1 = pro_annotate_map.get(re.pro_id_1).replace(",", ";");
+                    String annotate_2 = pro_annotate_map.get(re.pro_id_2).replace(",", ";");
+                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.abs_ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + ',' + annotate_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + annotate_2 + "," + String.format("%.2f", re.qvalue) + "\n");
                 }
             }
         } catch (IOException ex) {
