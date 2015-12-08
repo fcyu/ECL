@@ -100,7 +100,7 @@ public class SearchMain {
                 }
             }
         } catch (IOException ex) {
-            System.err.println("IOException: " + ex.getMessage());
+            ex.printStackTrace();
             System.exit(1);
         }
 
@@ -116,7 +116,7 @@ public class SearchMain {
                 }
             }
         } catch (IOException ex) {
-            System.err.println("IOException: " + ex.getMessage());
+            ex.printStackTrace();
             System.exit(1);
         }
     }

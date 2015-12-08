@@ -46,7 +46,7 @@ public class DbTool {
 			// Last protein
 			pro_seq_map.put(id, seq);
 		} catch (IOException | PatternSyntaxException ex) {
-			System.err.println("IOException: " + ex.getMessage());
+			ex.printStackTrace();
 			System.exit(1);
 		}
 	}

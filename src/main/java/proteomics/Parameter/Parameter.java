@@ -31,11 +31,8 @@ public class Parameter {
 				}
 			}
 			parameter_reader.close();
-		} catch (IOException ex) {
-			System.err.println("IOException: " + ex.getMessage());
-			System.exit(1);
-		} catch (IllegalStateException ex) {
-			System.err.println("IllegalStateException: " + ex.getMessage());
+		} catch (IOException | IllegalStateException ex) {
+			ex.printStackTrace();
 			System.exit(1);
 		}
 	}
@@ -66,11 +63,8 @@ public class Parameter {
 				}
 			}
 			parameter_reader.close();
-		} catch (IOException ex) {
-			System.err.println("IOException: " + ex.getMessage());
-			System.exit(1);
-		} catch (IllegalStateException ex) {
-			System.err.println("IllegalStateException: " + ex.getMessage());
+		} catch (IOException | IllegalStateException ex) {
+			ex.printStackTrace();
 			System.exit(1);
 		}
 	}
