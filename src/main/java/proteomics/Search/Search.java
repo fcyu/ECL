@@ -157,6 +157,12 @@ public class Search {
                 break;
             }
         }
+
+        // There is no spectrum meet the requirement.
+        if (mass1000_1_max_idx == 0) {
+            return new LinkedList<>();
+        }
+
         int last_progress = 0;
         for (int i = 0; i <= mass1000_1_max_idx; ++i) {
             int progress = i * 100 / mass1000_1_max_idx;
