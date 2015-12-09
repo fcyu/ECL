@@ -94,8 +94,16 @@ public class SearchMain {
                 if (re.type.contentEquals("11")) {
                     int link_site_1 = re.link_site_1 + 1;
                     int link_site_2 = re.link_site_2 + 1;
-                    String annotate_1 = pro_annotate_map.get(re.pro_id_1).replace(",", ";");
-                    String annotate_2 = pro_annotate_map.get(re.pro_id_2).replace(",", ";");
+                    String pro_1 = re.pro_id_1;
+                    if (re.pro_id_1.contains("&")) {
+                        pro_1 = re.pro_id_1.split("&")[0];
+                    }
+                    String pro_2 = re.pro_id_2;
+                    if (re.pro_id_2.contains("&")) {
+                        pro_2 = re.pro_id_2.split("&")[0];
+                    }
+                    String annotate_1 = pro_annotate_map.get(pro_1).replace(",", ";");
+                    String annotate_2 = pro_annotate_map.get(pro_2).replace(",", ";");
                     writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.abs_ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + ',' + annotate_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + annotate_2 + "," + String.format("%.2f", re.qvalue) + "\n");
                 }
             }
@@ -110,8 +118,16 @@ public class SearchMain {
                 if (re.type.contentEquals("11")) {
                     int link_site_1 = re.link_site_1 + 1;
                     int link_site_2 = re.link_site_2 + 1;
-                    String annotate_1 = pro_annotate_map.get(re.pro_id_1).replace(",", ";");
-                    String annotate_2 = pro_annotate_map.get(re.pro_id_2).replace(",", ";");
+                    String pro_1 = re.pro_id_1;
+                    if (re.pro_id_1.contains("&")) {
+                        pro_1 = re.pro_id_1.split("&")[0];
+                    }
+                    String pro_2 = re.pro_id_2;
+                    if (re.pro_id_2.contains("&")) {
+                        pro_2 = re.pro_id_2.split("&")[0];
+                    }
+                    String annotate_1 = pro_annotate_map.get(pro_1).replace(",", ";");
+                    String annotate_2 = pro_annotate_map.get(pro_2).replace(",", ";");
                     writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.abs_ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + ',' + annotate_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + annotate_2 + "," + String.format("%.2f", re.qvalue) + "\n");
                 }
             }
