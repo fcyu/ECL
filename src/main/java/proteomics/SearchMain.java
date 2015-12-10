@@ -72,7 +72,7 @@ public class SearchMain {
 
         double duration = (time_end - time_start) * 1e-9;
 
-        try (BufferedWriter target_writer = new BufferedWriter(new FileWriter(msxml_path + ".log.txt"))) {
+        try (BufferedWriter target_writer = new BufferedWriter(new FileWriter(msxml_path + ".log"))) {
             target_writer.write(msxml_path + " finished.\r\n"
                     + "Started on: " + sdf.format(date_start) + "\r\n"
                     + "Ended on: " + sdf.format(date_end) + "\r\n"
