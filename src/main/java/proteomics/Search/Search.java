@@ -308,18 +308,32 @@ public class Search {
 
             int precursor_charge = spectrum_entry.precursor_charge;
 
-            String pro_1 = chain_entry_1.pro_id;
+            // analyze cross-linking type: inter or intra
+            String[] pro_1;
             if (chain_entry_1.chain_type.contentEquals("0")) {
-                pro_1 = chain_entry_1.pro_id.substring(6);
+                pro_1 = new String[]{chain_entry_1.pro_id.substring(6)};
+            } else {
+                pro_1 = chain_entry_1.pro_id.split("&");
             }
 
-            String pro_2 = chain_entry_2.pro_id;
+            String[] pro_2;
             if (chain_entry_2.chain_type.contentEquals("0")) {
-                pro_2 = chain_entry_2.pro_id.substring(6);
+                pro_2 = new String[]{chain_entry_2.pro_id.substring(6)};
+            } else {
+                pro_2 = chain_entry_2.pro_id.split("&");
             }
 
             String cl_type = "intra_protein";
-            if ((!pro_1.contentEquals(pro_2)) || chain_seq_1.contentEquals(chain_seq_2) || chain_seq_1.contains(chain_seq_2) || chain_seq_2.contains(chain_seq_1)) {
+            boolean keep = false;
+            for (String temp_1 : pro_1) {
+                for (String temp_2 : pro_2) {
+                    if (temp_1.contentEquals(temp_2)) {
+                        keep = true;
+                        break;
+                    }
+                }
+            }
+            if ((!keep) || chain_seq_1.contentEquals(chain_seq_2) || chain_seq_1.contains(chain_seq_2) || chain_seq_2.contains(chain_seq_1)) {
                 cl_type = "inter_protein";
             }
 
