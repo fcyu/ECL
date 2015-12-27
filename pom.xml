@@ -2,13 +2,32 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>proteomics</groupId>
+    <groupId>hk.ust.bioinformatics</groupId>
     <artifactId>ECL</artifactId>
     <version>20151127</version>
     <packaging>jar</packaging>
 
     <name>ECL</name>
-    <url>http://maven.apache.org</url>
+    <description>A fast and exhaustive cross-linked peptides identification tool.</description>
+    <url>https://github.com/fcyu/ECL</url>
+    <licenses>
+        <license>
+            <name>Apache 2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>Laboratory for Bioinformatics and Computational Biology, HKUST</name>
+        <url>http://bioinformatics.ust.hk/</url>
+    </organization>
+    <developers>
+        <developer>
+            <id>FYu</id>
+            <name>Fengchao Yu</name>
+            <email>fyuab@connect.ust.hk</email>
+            <organization>BME, HKUST</organization>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -70,8 +89,8 @@
                         </manifest>
                     </archive>
                     <appendAssemblyId>
-                    false
-                </appendAssemblyId>
+                        false
+                    </appendAssemblyId>
                 </configuration>
                 <executions>
                     <execution>
