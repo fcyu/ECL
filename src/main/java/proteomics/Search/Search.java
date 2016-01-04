@@ -58,6 +58,7 @@ public class Search {
 
     public List<FinalResultEntry> doSearch(String msxml_path) throws Exception {
         // Read mzxml
+		logger.info("Reading and processing spectra...");
         MzXMLFile spectra_parser = null;
         try {
             File spectra_file = new File(msxml_path);
@@ -71,7 +72,6 @@ public class Search {
         }
 
         // Get current time
-        logger.info("Reading and processing spectra...");
         Iterator<Spectrum> spectrum_iterator = spectra_parser.getSpectrumIterator();
         while (spectrum_iterator.hasNext()) {
             Spectrum spectrum = spectrum_iterator.next();
@@ -132,7 +132,6 @@ public class Search {
             }
         }
 
-        // Get current time
         Map<Integer, ResultEntry> result_map = new HashMap<>();
         logger.info("Searching cross-linked peptides...");
 
