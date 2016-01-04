@@ -1,5 +1,7 @@
 package proteomics;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import proteomics.Parameter.Parameter;
 import proteomics.Search.FinalResultEntry;
 import proteomics.Search.PrepareSearch;
@@ -9,18 +11,13 @@ import proteomics.Validation.CalFDR;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class SearchMain {
 
-    public static void main(String[] args) throws Exception {
-        // Get current time
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss Z");
-        Calendar cal_start = Calendar.getInstance();
-        Date date_start = cal_start.getTime();
-        float time_start = System.nanoTime();
+    public static final Logger logger = LoggerFactory.getLogger(SearchMain.class);
 
+    public static void main(String[] args) throws Exception {
         // Process inputs
         if (args.length != 2) {
             help();
@@ -34,25 +31,20 @@ public class SearchMain {
         Parameter parameter = new Parameter(parameter_path);
         Map<String, String> parameter_map = parameter.returnParameterMap();
 
-        LogEntry log_entry = new LogEntry("");
-
         // Prepare search
-        System.out.println("Indexing database...");
-        log_entry.output_str += "Indexing database...";
+        logger.info("Indexing database...");
         PrepareSearch ps = new PrepareSearch(parameter_map);
         Map<String, String> pro_annotate_map = ps.returnBuildIndex().getProAnnotateMap();
 
         // Searching...
-        Search search = new Search(ps, log_entry, parameter_map);
+        Search search = new Search(ps, parameter_map);
         List<FinalResultEntry> search_results = search.doSearch(msxml_path);
 
         if (search_results.isEmpty()) {
-            System.out.println("There is no PSM.");
-            log_entry.output_str += "There is no PSM.";
+            logger.warn("There is no useful PSM.");
         } else {
             // save result
-            System.out.println("Estimating q value...");
-            log_entry.output_str += "Estimating q value...";
+            logger.info("Estimating q-value...");
             List<List<FinalResultEntry>> picked_result = pickResult(search_results);
             CalFDR cal_fdr_obj = new CalFDR(picked_result.get(0), false);
             List<FinalResultEntry> intra_result = cal_fdr_obj.includeStats();
@@ -60,31 +52,10 @@ public class SearchMain {
             cal_fdr_obj = new CalFDR(picked_result.get(1), false);
             List<FinalResultEntry> inter_result = cal_fdr_obj.includeStats();
             Collections.sort(inter_result, Collections.<FinalResultEntry>reverseOrder());
-            System.out.println("Saving results...");
-            log_entry.output_str += "Saving results...";
+            logger.info("Saving results...");
             saveResult(intra_result, inter_result, pro_annotate_map, msxml_path);
         }
-
-        // Get end time
-        Calendar cal_end = Calendar.getInstance();
-        Date date_end = cal_end.getTime();
-        float time_end = System.nanoTime();
-
-        double duration = (time_end - time_start) * 1e-9;
-
-        try (BufferedWriter target_writer = new BufferedWriter(new FileWriter(msxml_path + ".log"))) {
-            target_writer.write(msxml_path + " finished.\r\n"
-                    + "Started on: " + sdf.format(date_start) + "\r\n"
-                    + "Ended on: " + sdf.format(date_end) + "\r\n"
-                    + "Duration: " + (int) duration + " second" + "\r\n"
-                    + "\r\n"
-                    + "Log: \r\n"
-                    + log_entry.output_str + "\r\n");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        System.out.println("Done.");
+        logger.info("Done.");
     }
 
     private static void saveResult(List<FinalResultEntry> intra_result, List<FinalResultEntry> inter_result, Map<String, String> pro_annotate_map, String id_file_name) throws Exception {
@@ -108,7 +79,7 @@ public class SearchMain {
                 }
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error(ex.getMessage());
             System.exit(1);
         }
 
@@ -132,7 +103,7 @@ public class SearchMain {
                 }
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error(ex.getMessage());
             System.exit(1);
         }
     }
@@ -157,14 +128,14 @@ public class SearchMain {
     }
 
     private static void help() {
-        String help_str = "ECL version 20151227\r\n"
+        String help_str = "ECL version 20160104\r\n"
                 + "A cross-linked peptides identification tool.\r\n"
                 + "Author: Fengchao Yu\r\n"
                 + "Email: fyuab@connect.ust.hk\r\n"
-                + "ECL usage: java -Xmx32g -jar /path/to/ECL.jar <parameter_file> <data_file>\r\n"
+                + "ECL usage: java -Xmx25g -jar /path/to/ECL.jar <parameter_file> <data_file>\r\n"
                 + "\t<parameter_file>: parameter file. Can be download along with ECL.\r\n"
                 + "\t<data_file>: spectra data file (mzXML)\r\n"
-                + "\texample: java -Xmx32g -jar ECL.jar parameter.def data.mzxml";
+                + "\texample: java -Xmx32g -jar ECL.jar parameter.def data.mzxml\r\n";
         System.out.print(help_str);
         System.exit(1);
     }

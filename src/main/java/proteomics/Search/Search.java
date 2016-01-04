@@ -1,23 +1,23 @@
 package proteomics.Search;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.pride.tools.jmzreader.model.*;
 import uk.ac.ebi.pride.tools.mzxml_parser.*;
 import proteomics.Index.BuildIndex;
 import proteomics.Index.ChainEntry;
-import proteomics.LogEntry;
 import proteomics.Math.CalScore;
 import proteomics.Spectrum.PreSpectrum;
 import theoSeq.MassTool;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 
 public class Search {
 
     private static final float PROTON_MASS = 1.00727646688f;
+    private static final Logger logger = LoggerFactory.getLogger(Search.class);
 
-    private LogEntry log_entry = null;
     private int[] ms1_charge = null;
     private int[] common_ion_charge = null;
     private int[] xlink_ion_charge = null;
@@ -31,7 +31,6 @@ public class Search {
     private Map<String, ChainEntry> chain_entry_map = null;
     private Map<String, Float> fix_mod_map = null;
     private MassTool mass_tool_obj = null;
-    private String output_str = null;
     private Map<Integer, SpectrumEntry> num_spectrum_map = new HashMap<>();
     private float single_dot_product_t = 1e-6f;
     private TreeMap<Integer, List<SpectrumEntry>> mass1000_spectrum_map = new TreeMap<>();
@@ -39,9 +38,7 @@ public class Search {
     private int linker_mass1000 = 0;
 
     /////////////////////////////////////////public methods////////////////////////////////////////////////////////////
-    public Search(PrepareSearch ps, LogEntry log_entry, Map<String, String> parameter_map) throws Exception {
-        this.log_entry = log_entry;
-
+    public Search(PrepareSearch ps, Map<String, String> parameter_map) throws Exception {
         chain_entry_map = ps.returnChainEntryMap();
         BuildIndex build_index_obj = ps.returnBuildIndex();
         fix_mod_map = build_index_obj.returnFixModMap();
@@ -65,17 +62,16 @@ public class Search {
         try {
             File spectra_file = new File(msxml_path);
             if ((!spectra_file.exists() || (spectra_file.isDirectory()))) {
-                throw new FileNotFoundException("The spectra file not found.");
+                logger.error("The spectra file not found.");
             }
             spectra_parser = new MzXMLFile(spectra_file);
-        } catch (FileNotFoundException | MzXMLParsingException ex) {
-            ex.printStackTrace();
+        } catch (MzXMLParsingException ex) {
+            logger.error(ex.getMessage());
             System.exit(1);
         }
 
         // Get current time
-        float time_spectra_start = System.nanoTime();
-        System.out.println("Reading and processing spectra...");
+        logger.info("Reading and processing spectra...");
         Iterator<Spectrum> spectrum_iterator = spectra_parser.getSpectrumIterator();
         while (spectrum_iterator.hasNext()) {
             Spectrum spectrum = spectrum_iterator.next();
@@ -123,11 +119,6 @@ public class Search {
             num_spectrum_map.put(scan_num, spectrum_entry);
         }
 
-        double time_spectra_end = System.nanoTime();
-        double spectra_duration = (time_spectra_end - time_spectra_start) * 1e-9;
-        System.out.println("Duration: " + (int) spectra_duration + " seconds");
-        output_str += "Duration: " + (int) spectra_duration + " seconds" + "\r\n";
-
         // Generate a mass chain map.
         for (String chain : chain_entry_map.keySet()) {
             ChainEntry chain_entry = chain_entry_map.get(chain);
@@ -143,9 +134,7 @@ public class Search {
 
         // Get current time
         Map<Integer, ResultEntry> result_map = new HashMap<>();
-        float time_search_start = System.nanoTime();
-        System.out.println("Searching cross-linked peptides...");
-        output_str += "Searching cross-linked peptides..." + "\r\n";
+        logger.info("Searching cross-linked peptides...");
 
         Integer[] mass1000_array = mass1000_chain_map.keySet().toArray(new Integer[mass1000_chain_map.size()]);
         int max_spectrum_mass1000 = mass1000_spectrum_map.lastKey();
@@ -163,11 +152,11 @@ public class Search {
             return new LinkedList<>();
         }
 
-        int last_progress = 0;
+        int last_progress = -1;
         for (int i = 0; i <= mass1000_1_max_idx; ++i) {
-            int progress = i * 100 / mass1000_1_max_idx;
+            int progress = i * 20 / mass1000_1_max_idx;
             if (progress != last_progress) {
-                System.out.print("\r" + progress + "%");
+                logger.info("Searching progress: " + progress * 5 + "%");
                 last_progress = progress;
             }
 
@@ -345,15 +334,6 @@ public class Search {
             FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.abs_ppm, result_entry.score, delta_score, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, -1);
             search_result.add(re);
         }
-
-        float time_search_end = System.nanoTime();
-        spectra_duration = (time_search_end - time_search_start) * 1e-9;
-
-        System.out.println();
-        System.out.println("Duration: " + (int) spectra_duration + " seconds");
-        output_str += "Duration: " + (int) spectra_duration + " seconds" + "\r\n";
-
-        log_entry.output_str = output_str;
 
         return search_result;
     }

@@ -1,10 +1,15 @@
 package theoSeq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
 public class DbTool {
+
+	private static final Logger logger = LoggerFactory.getLogger(DbTool.class);
 
 	private Map<String, String> pro_seq_map = new HashMap<>();
 	private Map<String, String> pro_annotate_map = new HashMap<>();
@@ -46,7 +51,7 @@ public class DbTool {
 			// Last protein
 			pro_seq_map.put(id, seq);
 		} catch (IOException | PatternSyntaxException ex) {
-			ex.printStackTrace();
+			logger.error(ex.getMessage());
 			System.exit(1);
 		}
 	}

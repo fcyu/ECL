@@ -1,10 +1,16 @@
 package proteomics.Parameter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
 public class Parameter {
+
+	private static final Logger logger = LoggerFactory.getLogger(Parameter.class);
+
 	private String parameter_file = "./src/main/resources/parameter.def";
 	private Map<String, String> parameter_map = new HashMap<>();
 	
@@ -32,7 +38,7 @@ public class Parameter {
 			}
 			parameter_reader.close();
 		} catch (IOException | IllegalStateException ex) {
-			ex.printStackTrace();
+			logger.error(ex.getMessage());
 			System.exit(1);
 		}
 	}
@@ -64,7 +70,7 @@ public class Parameter {
 			}
 			parameter_reader.close();
 		} catch (IOException | IllegalStateException ex) {
-			ex.printStackTrace();
+			logger.error(ex.getMessage());
 			System.exit(1);
 		}
 	}
