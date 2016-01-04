@@ -155,7 +155,7 @@ public class Search {
         for (int i = 0; i <= mass1000_1_max_idx; ++i) {
             int progress = i * 20 / mass1000_1_max_idx;
             if (progress != last_progress) {
-                logger.info("Searching progress: " + progress * 5 + "%");
+                logger.info("Searching progress: {}%", progress * 5);
                 last_progress = progress;
             }
 
