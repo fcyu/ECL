@@ -296,6 +296,7 @@ public class Search {
             SpectrumEntry spectrum_entry = num_spectrum_map.get(spectrum_num);
 
             int precursor_charge = spectrum_entry.precursor_charge;
+            float precursor_mz = (spectrum_entry.precursor_mass - result_entry.C13_correction * C13_diff + precursor_charge * PROTON_MASS) / precursor_charge;
 
             // analyze cross-linking type: inter or intra
             String[] pro_1;
@@ -331,7 +332,7 @@ public class Search {
                 delta_score = result_entry.second_score / result_entry.score;
             }
 
-            FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.ppm, result_entry.score, delta_score, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, result_entry.C13_correction, -1);
+            FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, precursor_mz, result_entry.ppm, result_entry.score, delta_score, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, result_entry.C13_correction, -1);
             search_result.add(re);
         }
 
