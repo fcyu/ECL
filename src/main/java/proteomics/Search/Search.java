@@ -16,6 +16,8 @@ import java.util.*;
 public class Search {
 
     private static final float PROTON_MASS = 1.00727646688f;
+    private static final float C13_diff = 1.00335483f;
+    private static final int C13_diff_1000 = 1003;
     private static final Logger logger = LoggerFactory.getLogger(Search.class);
 
     private int[] ms1_charge = null;
@@ -71,7 +73,6 @@ public class Search {
             System.exit(1);
         }
 
-        // Get current time
         Iterator<Spectrum> spectrum_iterator = spectra_parser.getSpectrumIterator();
         while (spectrum_iterator.hasNext()) {
             Spectrum spectrum = spectrum_iterator.next();
@@ -161,7 +162,7 @@ public class Search {
 
             int mass1000_1 = mass1000_array[i];
 
-            int start_mass = 2 * mass1000_1 + linker_mass1000;
+            int start_mass = 2 * mass1000_1 + linker_mass1000 - 2 * C13_diff_1000;
             if (ms1_tolerance_unit == 0) {
                 start_mass -= round1000(ms1_tolerance);
             } else if (ms1_tolerance_unit == 1) {
@@ -235,7 +236,7 @@ public class Search {
                                     if (score > last_result.score) {
                                         float total_mass = back1000(mass1000_1 + mass1000_2) + linker_mass;
                                         float abs_ppm = (float) (Math.abs(spectrum_entry.precursor_mass - total_mass) * 1e6 / total_mass);
-                                        ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, score, last_result.score);
+                                        ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, score, last_result.score, semi_psm.C13_correction);
                                         result_map.put(scan_num, result_entry);
                                     } else if (score > last_result.second_score) {
                                         result_map.get(scan_num).second_score = score;
@@ -243,7 +244,7 @@ public class Search {
                                 } else {
                                     float total_mass = back1000(mass1000_1 + mass1000_2) + linker_mass;
                                     float abs_ppm = (float) (Math.abs(spectrum_entry.precursor_mass - total_mass) * 1e6 / total_mass);
-                                    ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, score, -1);
+                                    ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, score, -1, semi_psm.C13_correction);
                                     result_map.put(scan_num, result_entry);
                                 }
                             }
@@ -330,7 +331,7 @@ public class Search {
                 delta_score = result_entry.second_score / result_entry.score;
             }
 
-            FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.abs_ppm, result_entry.score, delta_score, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, -1);
+            FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.abs_ppm, result_entry.score, delta_score, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, result_entry.C13_correction, -1);
             search_result.add(re);
         }
 
@@ -351,7 +352,29 @@ public class Search {
                 mass1000_2_right = (int) (exp_mass1000 / (1 - ms1_tolerance / 1e6f)) - mass1000_1 - linker_mass1000;
             }
 
-            NavigableMap<Integer, Set<String>> sub_map = mass1000_chain_map.subMap(mass1000_2_left, true, mass1000_2_right, true);
+            TreeMap<Integer, Set<String>> sub_map = new TreeMap<>(mass1000_chain_map.subMap(mass1000_2_left, true, mass1000_2_right, true));
+
+            // consider C13 correction.
+            int corrected__exp_mass_1000 = exp_mass1000 - C13_diff_1000;
+            if (ms1_tolerance_unit == 0) {
+                mass1000_2_left = corrected__exp_mass_1000 - round1000(ms1_tolerance) - mass1000_1 - linker_mass1000;
+                mass1000_2_right = corrected__exp_mass_1000 + round1000(ms1_tolerance) - mass1000_1 - linker_mass1000;
+            } else if (ms1_tolerance_unit == 1) {
+                mass1000_2_left = (int) (corrected__exp_mass_1000 / (1 + ms1_tolerance / 1e6f)) - mass1000_1 - linker_mass1000;
+                mass1000_2_right = (int) (corrected__exp_mass_1000 / (1 - ms1_tolerance / 1e6f)) - mass1000_1 - linker_mass1000;
+            }
+            sub_map.putAll(mass1000_chain_map.subMap(mass1000_2_left, true, mass1000_2_right, true));
+
+            corrected__exp_mass_1000 = exp_mass1000 - 2 * C13_diff_1000;
+            if (ms1_tolerance_unit == 0) {
+                mass1000_2_left = corrected__exp_mass_1000 - round1000(ms1_tolerance) - mass1000_1 - linker_mass1000;
+                mass1000_2_right = corrected__exp_mass_1000 + round1000(ms1_tolerance) - mass1000_1 - linker_mass1000;
+            } else if (ms1_tolerance_unit == 1) {
+                mass1000_2_left = (int) (corrected__exp_mass_1000 / (1 + ms1_tolerance / 1e6f)) - mass1000_1 - linker_mass1000;
+                mass1000_2_right = (int) (corrected__exp_mass_1000 / (1 - ms1_tolerance / 1e6f)) - mass1000_1 - linker_mass1000;
+            }
+            sub_map.putAll(mass1000_chain_map.subMap(mass1000_2_left, true, mass1000_2_right, true));
+
             if (sub_map.size() == 0) {
                 continue;
             }
@@ -378,10 +401,29 @@ public class Search {
                     if (dot_product > single_dot_product_t) {
                         int exp_mass1000_2 = exp_mass1000 - mass1000_1 - linker_mass1000;
                         if (exp_mass1000_2_semiPSM_map.containsKey(exp_mass1000_2)) {
-                            exp_mass1000_2_semiPSM_map.get(exp_mass1000_2).add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq));
+                            exp_mass1000_2_semiPSM_map.get(exp_mass1000_2).add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq, 0));
                         } else {
                             List<SemiPSM> temp = new LinkedList<>();
-                            temp.add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq));
+                            temp.add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq, 0));
+                            exp_mass1000_2_semiPSM_map.put(exp_mass1000_2, temp);
+                        }
+
+                        // consider C13 correction
+                        exp_mass1000_2 = exp_mass1000 - C13_diff_1000 - mass1000_1 - linker_mass1000;
+                        if (exp_mass1000_2_semiPSM_map.containsKey(exp_mass1000_2)) {
+                            exp_mass1000_2_semiPSM_map.get(exp_mass1000_2).add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq, 1));
+                        } else {
+                            List<SemiPSM> temp = new LinkedList<>();
+                            temp.add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq, 1));
+                            exp_mass1000_2_semiPSM_map.put(exp_mass1000_2, temp);
+                        }
+
+                        exp_mass1000_2 = exp_mass1000 - 2 * C13_diff_1000 - mass1000_1 - linker_mass1000;
+                        if (exp_mass1000_2_semiPSM_map.containsKey(exp_mass1000_2)) {
+                            exp_mass1000_2_semiPSM_map.get(exp_mass1000_2).add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq, 2));
+                        } else {
+                            List<SemiPSM> temp = new LinkedList<>();
+                            temp.add(new SemiPSM(spectrum_entry.scan_num, dot_product, theo_mz.length, link_site_1, chain_seq, 2));
                             exp_mass1000_2_semiPSM_map.put(exp_mass1000_2, temp);
                         }
                     }

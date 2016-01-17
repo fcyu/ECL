@@ -110,7 +110,7 @@ public class CalFDR {
                 if (re.delta_score <= DELTA_SCORE_T) {
                     int idx = (int) Math.floor(re.score / PRECISION);
                     float qvalue = qvalue_array[idx];
-                    final_results.add(new FinalResultEntry(re.spectrum_id, re.rank, re.charge, re.spectrum_precursor_mz, re.abs_ppm, re.score, re.delta_score, re.seq_1, re.link_site_1, re.mod_1, re.pro_id_1, re.seq_2, re.link_site_2, re.mod_2, re.pro_id_2, re.cl_type, re.type, qvalue));
+                    final_results.add(new FinalResultEntry(re.spectrum_id, re.rank, re.charge, re.spectrum_precursor_mz, re.abs_ppm, re.score, re.delta_score, re.seq_1, re.link_site_1, re.mod_1, re.pro_id_1, re.seq_2, re.link_site_2, re.mod_2, re.pro_id_2, re.cl_type, re.type, re.C13_correction, qvalue));
                 }
             }
         }

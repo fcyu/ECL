@@ -9,8 +9,9 @@ public class ResultEntry {
     public double second_score = 0;
     public int link_site_1 = 0;
     public int link_site_2 = 0;
+    public int C13_correction = 0;
 
-    public ResultEntry(String chain_seq_1, String chain_seq_2, int link_site_1, int link_site_2, float abs_ppm, double score, double second_score) {
+    public ResultEntry(String chain_seq_1, String chain_seq_2, int link_site_1, int link_site_2, float abs_ppm, double score, double second_score, int C13_correction) {
         this.chain_seq_1 = chain_seq_1;
         this.chain_seq_2 = chain_seq_2;
         this.link_site_1 = link_site_1;
@@ -18,5 +19,6 @@ public class ResultEntry {
         this.abs_ppm = abs_ppm;
         this.score = score;
         this.second_score = second_score;
+        this.C13_correction = C13_correction;
     }
 }

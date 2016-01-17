@@ -19,9 +19,10 @@ public class FinalResultEntry implements Comparable<FinalResultEntry> {
     public String pro_id_2 = null;
     public String cl_type = null;
     public String type = null;
+    public int C13_correction = 0;
     public float qvalue = 0;
 
-    public FinalResultEntry(int spectrum_id, int rank, int charge, float spectrum_precursor_mz, float abs_ppm, double score, double delta_score, String seq_1, int link_site_1, String mod_1, String pro_id_1, String seq_2, int link_site_2, String mod_2, String pro_id_2, String cl_type, String type, float qvalue) {
+    public FinalResultEntry(int spectrum_id, int rank, int charge, float spectrum_precursor_mz, float abs_ppm, double score, double delta_score, String seq_1, int link_site_1, String mod_1, String pro_id_1, String seq_2, int link_site_2, String mod_2, String pro_id_2, String cl_type, String type, int C13_correction, float qvalue) {
         this.spectrum_id = spectrum_id;
         this.rank = rank;
         this.charge = charge;
@@ -39,6 +40,7 @@ public class FinalResultEntry implements Comparable<FinalResultEntry> {
         this.pro_id_2 = pro_id_2;
         this.cl_type = cl_type;
         this.type = type;
+        this.C13_correction = C13_correction;
         this.qvalue = qvalue;
     }
 
