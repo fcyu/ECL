@@ -3,10 +3,10 @@ package proteomics.Math;
 
 public class CalScore {
 
-    private float[][] alignment_matrix = null;
+    private double[][] alignment_matrix = null;
 
     public CalScore(float[][] exp_matrix, float[] theo_vector, float ms2_tolerance) {
-        alignment_matrix = new float[2][exp_matrix[0].length + theo_vector.length];
+        alignment_matrix = new double[2][exp_matrix[0].length + theo_vector.length];
 
         int start = 0;
         int idx = 0;
@@ -32,8 +32,8 @@ public class CalScore {
         }
     }
 
-    public float cal_dot_product() {
-        float dot_value = 0;
+    public double cal_dot_product() {
+        double dot_value = 0;
         for (int i = 0; i < alignment_matrix[0].length; ++i) {
             dot_value += alignment_matrix[1][i];
         }

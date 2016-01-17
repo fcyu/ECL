@@ -5,64 +5,46 @@ import proteomics.Search.*;
 
 public class CalFDR {
 
-    private static final float MAX_SCORE = 1;
-    private static final float PRECISION = 0.001f;
+    private static final int BIN_NUM = 1000;
     private static final float DELTA_SCORE_T = 0.95f;
 
     private float[] qvalue_array = null;
     private List<FinalResultEntry> results;
+    private final double bin_size;
 
-    public CalFDR(List<FinalResultEntry> results, boolean unique_peptide) {
+    public CalFDR(List<FinalResultEntry> results) {
         this.results = results;
-        final int array_length = 1 + (int) Math.ceil(MAX_SCORE / PRECISION);
-        float[] decoy_count_vector = new float[array_length];
-        float[] target_count_vector = new float[array_length];
-        float[] fuse_count_vector = new float[array_length];
+
+        // find the max_score
+        double max_score = 0;
+        for (FinalResultEntry entry : results) {
+            if (entry.score > max_score) {
+                max_score = entry.score;
+            }
+        }
+
+        bin_size = max_score / BIN_NUM;
+
+        final int array_length = 1 + BIN_NUM;
+        int[] decoy_count_vector = new int[array_length];
+        int[] target_count_vector = new int[array_length];
+        int[] fuse_count_vector = new int[array_length];
         float[] fdr_array = new float[array_length];
         qvalue_array = new float[array_length];
 
-        if (unique_peptide) {
-            Map<String, FinalResultEntry> peptide_result_map = new HashMap<>();
-            for (FinalResultEntry result_entry : results) {
-                if (result_entry.delta_score > DELTA_SCORE_T) {
-                    continue;
-                }
-                String peptide = result_entry.seq_1 + "-" + result_entry.seq_2;
-                if (peptide_result_map.containsKey(peptide)) {
-                    if (peptide_result_map.get(peptide).score < result_entry.score) {
-                        peptide_result_map.put(peptide, result_entry);
-                    }
-                } else {
-                    peptide_result_map.put(peptide, result_entry);
-                }
+        for (FinalResultEntry re : results) {
+            if (re.delta_score > DELTA_SCORE_T) {
+                continue;
             }
-            for (FinalResultEntry re : peptide_result_map.values()) {
-                if (re.type.contentEquals("00")) {
-                    int idx = (int) Math.floor(re.score / PRECISION);
-                    ++decoy_count_vector[idx];
-                } else if (re.type.contentEquals("11")) {
-                    int idx = (int) Math.floor(re.score / PRECISION);
-                    ++target_count_vector[idx];
-                } else {
-                    int idx = (int) Math.floor(re.score / PRECISION);
-                    ++fuse_count_vector[idx];
-                }
-            }
-        } else {
-            for (FinalResultEntry re : results) {
-                if (re.delta_score > DELTA_SCORE_T) {
-                    continue;
-                }
-                if (re.type.contentEquals("00")) {
-                    int idx = (int) Math.floor(re.score / PRECISION);
-                    ++decoy_count_vector[idx];
-                } else if (re.type.contentEquals("11")) {
-                    int idx = (int) Math.floor(re.score / PRECISION);
-                    ++target_count_vector[idx];
-                } else {
-                    int idx = (int) Math.floor(re.score / PRECISION);
-                    ++fuse_count_vector[idx];
-                }
+            if (re.type.contentEquals("00")) {
+                int idx = (int) Math.floor(re.score / bin_size);
+                ++decoy_count_vector[idx];
+            } else if (re.type.contentEquals("11")) {
+                int idx = (int) Math.floor(re.score / bin_size);
+                ++target_count_vector[idx];
+            } else {
+                int idx = (int) Math.floor(re.score / bin_size);
+                ++fuse_count_vector[idx];
             }
         }
 
@@ -104,17 +86,13 @@ public class CalFDR {
     }
 
     public List<FinalResultEntry> includeStats() {
-        List<FinalResultEntry> final_results = new LinkedList<>();
         for (FinalResultEntry re : results) {
             if (re.type.contentEquals("11")) {
-                if (re.delta_score <= DELTA_SCORE_T) {
-                    int idx = (int) Math.floor(re.score / PRECISION);
-                    float qvalue = qvalue_array[idx];
-                    final_results.add(new FinalResultEntry(re.spectrum_id, re.rank, re.charge, re.spectrum_precursor_mz, re.abs_ppm, re.score, re.delta_score, re.seq_1, re.link_site_1, re.mod_1, re.pro_id_1, re.seq_2, re.link_site_2, re.mod_2, re.pro_id_2, re.cl_type, re.type, re.C13_correction, qvalue));
-                }
+                int idx = (int) Math.floor(re.score / bin_size);
+                re.qvalue = qvalue_array[idx];
             }
         }
 
-        return final_results;
+        return results;
     }
 }

@@ -5,7 +5,7 @@ import java.util.*;
 public class PreSpectrum {
 
     private static final float PROTON_MASS = 1.00727646688f;
-    private static final float DEFAULT_INTENSITY = 1; // DO NOT change. Otherwise, change CalScore accordingly.
+    private static final float DEFAULT_INTENSITY = 100; // DO NOT change. Otherwise, change score calculation accordingly.
     private static final float FLOAT_ZERO = 1e-6f;
 
     public static float[][] preProcessSpec(Map<Double, Double> peaks_map, float precursor_mass, int precursor_charge, float ms2_tolerance, float max_mz) {
@@ -16,9 +16,9 @@ public class PreSpectrum {
         TreeMap<Float, Float> denoised_pl_map = deNoise(new TreeMap<>(temp.subMap(0f, true, max_mz, true)));
 
         // normalize
-        TreeMap<Float, Float> normzlized_pl_map = normalizeSpec(denoised_pl_map);
+        TreeMap<Float, Float> normalized_pl_map = normalizeSpec(denoised_pl_map);
 
-        return prepareScore(normzlized_pl_map);
+        return prepareScore(normalized_pl_map);
     }
 
     private static TreeMap<Float, Float> removePrecursorPeak(Map<Double, Double> peak_map, float precursor_mass, int precursor_charge, float ms2_tolerance) {
@@ -134,7 +134,7 @@ public class PreSpectrum {
                 Float[] intensity_array = sub_map.values().toArray(new Float[sub_map.size()]);
                 Arrays.sort(intensity_array);
                 float temp_1 = DEFAULT_INTENSITY / intensity_array[intensity_array.length - 1];
-                float temp_2 = (float) 0.05 * intensity_array[intensity_array.length - 1];
+                float temp_2 = 5;
                 for (float mz : sub_map.keySet()) {
                     if (sub_map.get(mz) > temp_2) {
                         windowed_pl_map.put(mz, sub_map.get(mz) * temp_1);

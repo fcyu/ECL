@@ -6,7 +6,7 @@ public class FinalResultEntry implements Comparable<FinalResultEntry> {
     public int rank = 0;
     public int charge = 0;
     public float spectrum_precursor_mz = 0;
-    public float abs_ppm = 0;
+    public float ppm = 0;
     public double score = 0;
     public double delta_score = 0;
     public String seq_1 = null;
@@ -22,12 +22,12 @@ public class FinalResultEntry implements Comparable<FinalResultEntry> {
     public int C13_correction = 0;
     public float qvalue = 0;
 
-    public FinalResultEntry(int spectrum_id, int rank, int charge, float spectrum_precursor_mz, float abs_ppm, double score, double delta_score, String seq_1, int link_site_1, String mod_1, String pro_id_1, String seq_2, int link_site_2, String mod_2, String pro_id_2, String cl_type, String type, int C13_correction, float qvalue) {
+    public FinalResultEntry(int spectrum_id, int rank, int charge, float spectrum_precursor_mz, float ppm, double score, double delta_score, String seq_1, int link_site_1, String mod_1, String pro_id_1, String seq_2, int link_site_2, String mod_2, String pro_id_2, String cl_type, String type, int C13_correction, float qvalue) {
         this.spectrum_id = spectrum_id;
         this.rank = rank;
         this.charge = charge;
         this.spectrum_precursor_mz= spectrum_precursor_mz;
-        this.abs_ppm = abs_ppm;
+        this.ppm = ppm;
         this.score = score;
         this.delta_score = delta_score;
         this.seq_1 = seq_1;
