@@ -59,7 +59,7 @@ public class SearchMain {
     }
 
     private static void saveResult(List<FinalResultEntry> intra_result, List<FinalResultEntry> inter_result, Map<String, String> pro_annotate_map, String id_file_name) throws Exception {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.target.csv"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.csv"))) {
             writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
             for (FinalResultEntry re : intra_result) {
                 if (re.type.contentEquals("11")) {
@@ -83,21 +83,7 @@ public class SearchMain {
             System.exit(1);
         }
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.decoy.csv"))) {
-            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2\n");
-            for (FinalResultEntry re : intra_result) {
-                if (re.type.contentEquals("11")) {
-                    int link_site_1 = re.link_site_1 + 1;
-                    int link_site_2 = re.link_site_2 + 1;
-                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + ",decoy," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + ",decoy\n");
-                }
-            }
-        } catch (IOException ex) {
-            logger.error(ex.getMessage());
-            System.exit(1);
-        }
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.target.csv"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.csv"))) {
             writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
             for (FinalResultEntry re : inter_result) {
                 if (re.type.contentEquals("11")) {
@@ -114,20 +100,6 @@ public class SearchMain {
                     String annotate_1 = pro_annotate_map.get(pro_1).replace(",", ";");
                     String annotate_2 = pro_annotate_map.get(pro_2).replace(",", ";");
                     writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + ',' + annotate_1 + "," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + "," + annotate_2 + "," + String.format("%.4f", re.qvalue) + "\n");
-                }
-            }
-        } catch (IOException ex) {
-            logger.error(ex.getMessage());
-            System.exit(1);
-        }
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.decoy.csv"))) {
-            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
-            for (FinalResultEntry re : inter_result) {
-                if (re.type.contentEquals("11")) {
-                    int link_site_1 = re.link_site_1 + 1;
-                    int link_site_2 = re.link_site_2 + 1;
-                    writer.write(re.spectrum_id + "," + re.spectrum_precursor_mz + "," + re.charge + "," + String.format("%.4f", re.score) + "," + String.format("%.2f", re.delta_score) + "," + String.format("%.2f", re.ppm) + "," + re.seq_1 + "," + link_site_1 + "," + re.mod_1 + "," + re.pro_id_1 + ",decoy," + re.seq_2 + "," + link_site_2 + "," + re.mod_2 + "," + re.pro_id_2 + ",decoy\n");
                 }
             }
         } catch (IOException ex) {
