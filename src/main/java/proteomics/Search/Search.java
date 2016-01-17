@@ -222,7 +222,7 @@ public class Search {
                                     charge_theo_mz_map.put(precursor_charge, theo_mz_2);
                                 }
                                 CalScore cal_score_2 = new CalScore(spectrum_entry.mz_intensity_array, theo_mz_2, ms2_tolerance);
-                                float dot_product_2 = cal_score_2.cal_dot_product();
+                                double dot_product_2 = cal_score_2.cal_dot_product();
                                 if (dot_product_2 <= single_dot_product_t) {
                                     continue;
                                 }
@@ -235,16 +235,16 @@ public class Search {
                                     ResultEntry last_result = result_map.get(scan_num);
                                     if (score > last_result.score) {
                                         float total_mass = back1000(mass1000_1 + mass1000_2) + linker_mass;
-                                        float abs_ppm = (float) (Math.abs(spectrum_entry.precursor_mass - total_mass) * 1e6 / total_mass);
-                                        ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, score, last_result.score, semi_psm.C13_correction);
+                                        float ppm = (spectrum_entry.precursor_mass - semi_psm.C13_correction * C13_diff - total_mass) * 1e6f / total_mass;
+                                        ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, ppm, score, last_result.score, semi_psm.C13_correction);
                                         result_map.put(scan_num, result_entry);
                                     } else if (score > last_result.second_score) {
                                         result_map.get(scan_num).second_score = score;
                                     }
                                 } else {
                                     float total_mass = back1000(mass1000_1 + mass1000_2) + linker_mass;
-                                    float abs_ppm = (float) (Math.abs(spectrum_entry.precursor_mass - total_mass) * 1e6 / total_mass);
-                                    ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, abs_ppm, score, -1, semi_psm.C13_correction);
+                                    float ppm = (spectrum_entry.precursor_mass - semi_psm.C13_correction * C13_diff - total_mass) * 1e6f / total_mass;
+                                    ResultEntry result_entry = new ResultEntry(semi_psm.chain_seq, chain_seq_2, semi_psm.link_site, link_site_2, ppm, score, -1, semi_psm.C13_correction);
                                     result_map.put(scan_num, result_entry);
                                 }
                             }
@@ -331,7 +331,7 @@ public class Search {
                 delta_score = result_entry.second_score / result_entry.score;
             }
 
-            FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.abs_ppm, result_entry.score, delta_score, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, result_entry.C13_correction, -1);
+            FinalResultEntry re = new FinalResultEntry(spectrum_num, rank, precursor_charge, spectrum_entry.precursor_mz, result_entry.ppm, result_entry.score, delta_score, chain_seq_1, result_entry.link_site_1, mod_1, chain_entry_1.pro_id, chain_seq_2, result_entry.link_site_2, mod_2, chain_entry_2.pro_id, cl_type, type, result_entry.C13_correction, -1);
             search_result.add(re);
         }
 
@@ -395,7 +395,7 @@ public class Search {
 
                     // Calculate dot produce
                     CalScore cal_score = new CalScore(spectrum_entry.mz_intensity_array, theo_mz, ms2_tolerance);
-                    float dot_product = cal_score.cal_dot_product();
+                    double dot_product = cal_score.cal_dot_product();
 
                     // Record result
                     if (dot_product > single_dot_product_t) {
