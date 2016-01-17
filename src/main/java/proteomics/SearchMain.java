@@ -156,7 +156,7 @@ public class SearchMain {
     }
 
     private static void help() {
-        String help_str = "ECL version 20160104\r\n"
+        String help_str = "ECL version 20160117\r\n"
                 + "A cross-linked peptides identification tool.\r\n"
                 + "Author: Fengchao Yu\r\n"
                 + "Email: fyuab@connect.ust.hk\r\n"
