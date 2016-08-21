@@ -8,7 +8,7 @@ Usage:
 ```
 java -Xmx32g -jar /path/to/ECL.jar <parameter_file> <data_file>
 ```
-1. <parameter_file>: parameter file. Can be download along with ECL.
+1. <parameter_file>: parameter file. Can be downloaded along with ECL.
 2. <data_file>: spectra data file (mzXML).
 
 example: java -Xmx25g -jar ECL.jar parameter.def data.mzxml
