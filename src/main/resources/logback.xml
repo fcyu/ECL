@@ -11,7 +11,7 @@
     <appender name="FILE"
         class="ch.qos.logback.core.FileAppender">
         <file>ECL.log</file>
-        <append>false</append>
+        <append>true</append>
         <encoder>
             <Pattern>
                 %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg %n
