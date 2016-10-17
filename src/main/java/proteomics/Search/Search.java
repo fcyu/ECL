@@ -60,7 +60,7 @@ public class Search {
 
     public List<FinalResultEntry> doSearch(String msxml_path) throws Exception {
         // Read mzxml
-		logger.info("Reading and processing spectra...");
+        logger.info("Reading and processing spectra...");
         MzXMLFile spectra_parser = null;
         try {
             File spectra_file = new File(msxml_path);
