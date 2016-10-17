@@ -16,6 +16,7 @@ import java.util.*;
 public class SearchMain {
 
     private static final Logger logger = LoggerFactory.getLogger(SearchMain.class);
+    private static final String version = "1.1.0";
 
     public static void main(String[] args) throws Exception {
         // Process inputs
@@ -23,6 +24,9 @@ public class SearchMain {
             help();
         }
 
+        logger.info("ECL Version {}.", version);
+        logger.info("Author: Fengchao Yu (fyuab@connect.ust.hk).");
+        
         // Set parameters
         String parameter_path = args[0].trim();
         String msxml_path = args[1].trim();
@@ -136,7 +140,7 @@ public class SearchMain {
     }
 
     private static void help() {
-        String help_str = "ECL version 20160117\r\n"
+        String help_str = "ECL version " + version + "\r\n"
                 + "A cross-linked peptides identification tool.\r\n"
                 + "Author: Fengchao Yu\r\n"
                 + "Email: fyuab@connect.ust.hk\r\n"
