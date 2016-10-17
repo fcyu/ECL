@@ -87,7 +87,7 @@ public class CalFDR {
 
     public List<FinalResultEntry> includeStats() {
         for (FinalResultEntry re : results) {
-            if (re.type.contentEquals("11")) {
+            if (re.type.contentEquals("11") && (re.delta_score <= DELTA_SCORE_T)) {
                 int idx = (int) Math.floor(re.score / bin_size);
                 re.qvalue = qvalue_array[idx];
             }

@@ -15,7 +15,7 @@ import java.util.*;
 
 public class SearchMain {
 
-    public static final Logger logger = LoggerFactory.getLogger(SearchMain.class);
+    private static final Logger logger = LoggerFactory.getLogger(SearchMain.class);
 
     public static void main(String[] args) throws Exception {
         // Process inputs
@@ -26,6 +26,8 @@ public class SearchMain {
         // Set parameters
         String parameter_path = args[0].trim();
         String msxml_path = args[1].trim();
+
+        logger.info("Parameter file: {}, spectra file: {}.", parameter_path, msxml_path);
 
         // Get the parameter map
         Parameter parameter = new Parameter(parameter_path);
@@ -63,6 +65,9 @@ public class SearchMain {
             writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
             for (FinalResultEntry re : intra_result) {
                 if (re.type.contentEquals("11")) {
+                    if (re.qvalue == -1) {
+                        continue;
+                    }
                     int link_site_1 = re.link_site_1 + 1;
                     int link_site_2 = re.link_site_2 + 1;
                     String pro_1 = re.pro_id_1;
@@ -87,6 +92,9 @@ public class SearchMain {
             writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
             for (FinalResultEntry re : inter_result) {
                 if (re.type.contentEquals("11")) {
+                    if (re.qvalue == -1) {
+                        continue;
+                    }
                     int link_site_1 = re.link_site_1 + 1;
                     int link_site_2 = re.link_site_2 + 1;
                     String pro_1 = re.pro_id_1;
@@ -135,7 +143,7 @@ public class SearchMain {
                 + "ECL usage: java -Xmx25g -jar /path/to/ECL.jar <parameter_file> <data_file>\r\n"
                 + "\t<parameter_file>: parameter file. Can be download along with ECL.\r\n"
                 + "\t<data_file>: spectra data file (mzXML)\r\n"
-                + "\texample: java -Xmx32g -jar ECL.jar parameter.def data.mzxml\r\n";
+                + "\texample: java -Xmx25g -jar ECL.jar parameter.def data.mzxml\r\n";
         System.out.print(help_str);
         System.exit(1);
     }
