@@ -121,7 +121,7 @@ public class BuildIndex {
             String pro_seq = pro_seq_map.get(pro_id);
             Set<String> seq_set = mass_tool_obj.buildChainSet(pro_seq);
             for (String seq : seq_set) {
-                if ((seq.length() < min_chain_length) || (seq.length() > max_chain_length)) {
+                if ((seq.length() < min_chain_length) || (seq.length() > max_chain_length) || seq.contains("B") || seq.contains("J") || seq.contains("O") || seq.contains("U") || seq.contains("X") || seq.contains("Z")) {
                     continue;
                 }
 
