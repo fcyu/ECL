@@ -31,8 +31,6 @@ public class SearchMain {
         String parameter_path = args[0].trim();
         String msxml_path = args[1].trim();
 
-        logger.info("ECL Version {}.", version);
-        logger.info("Author: Fengchao Yu (fyuab@connect.ust.hk).");
         logger.info("Parameter file: {}, spectra file: {}.", parameter_path, msxml_path);
 
         // Get the parameter map
