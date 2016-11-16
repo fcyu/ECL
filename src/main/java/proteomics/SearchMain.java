@@ -16,7 +16,7 @@ import java.util.*;
 public class SearchMain {
 
     private static final Logger logger = LoggerFactory.getLogger(SearchMain.class);
-    private static final String version = "1.1.0";
+    private static final String version = "1.1.1";
 
     public static void main(String[] args) throws Exception {
         // Process inputs
