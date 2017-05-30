@@ -16,7 +16,7 @@ import java.util.*;
 public class SearchMain {
 
     private static final Logger logger = LoggerFactory.getLogger(SearchMain.class);
-    private static final String version = "1.1.1";
+    private static final String version = "1.1.2";
 
     public static void main(String[] args) throws Exception {
         // Process inputs
@@ -66,7 +66,7 @@ public class SearchMain {
 
     private static void saveResult(List<FinalResultEntry> intra_result, List<FinalResultEntry> inter_result, Map<String, String> pro_annotate_map, String id_file_name) throws Exception {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".intra.csv"))) {
-            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
+            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
             for (FinalResultEntry re : intra_result) {
                 if (re.type.contentEquals("11")) {
                     if (re.qvalue == -1) {
@@ -93,7 +93,7 @@ public class SearchMain {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(id_file_name + ".inter.csv"))) {
-            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,abs_ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
+            writer.write("scan_num,spectrum_precursor_mz,charge,score,delta_score,ppm,peptide_1,site_1,mod_1,protein_1,protein_annotation_1,peptide_2,site_2,mod_2,protein_2,protein_annotation_2,q_value\n");
             for (FinalResultEntry re : inter_result) {
                 if (re.type.contentEquals("11")) {
                     if (re.qvalue == -1) {
