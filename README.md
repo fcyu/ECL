@@ -1,6 +1,8 @@
 # ECL
 A fast and exhaustive cross-linked peptides identification tool.
 
+**This project has been deprecated. Please use [ECL2](https://github.com/fcyu/ECL2).**
+
 ## How to use it?
 Requirements: Java 1.7 or later
 
